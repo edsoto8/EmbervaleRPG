@@ -249,3 +249,58 @@ func write_json(path: String, data: Variant) -> void:
 	var f := FileAccess.open(path, FileAccess.WRITE)
 	f.store_string(JSON.stringify(data))
 	f.close()
+
+
+# --- adventure helpers ----------------------------------------------------------------------------
+
+## Writes a save (stage island) with the given quest/inventory/skills and continues into it through
+## the real Continue path. Returns the ready world.
+func start_adventure(quest: Dictionary = {}, slots: Array = [], extra: Dictionary = {}) -> World:
+	var data := GameManager.new_game_data("Tester", Appearance.defaults())
+	data.stage = "island"
+	for k in quest:
+		data.quest[k] = quest[k]
+	data.inventory.slots = slots
+	for k in extra:
+		data[k] = extra[k]
+	if not SaveManager.write_save(data):
+		push_error("could not write fixture save")
+	var res := GameManager.continue_game()
+	if not res.ok:
+		push_error("continue failed: %s" % res.get("error", ""))
+		return null
+	var w := await wait_for_world()
+	await physics_frames(2)
+	return w
+
+
+func saved_data() -> Dictionary:
+	var d: Variant = read_json(AppPaths.save_path())
+	return d if d is Dictionary else {}
+
+
+## Plays through the current conversation with real keys: Space reveals/advances, number keys pick
+## `picks` in order (1-based). Returns when the dialogue ends or after `limit` steps.
+func run_dialogue(world_: World, picks: Array = [], limit: int = 40) -> void:
+	var queue := picks.duplicate()
+	for i in limit:
+		if not DialogueManager.active:
+			return
+		var panel := world_.hud.dialogue_panel
+		if panel.is_typing():
+			await tap("dialogue_continue")
+			continue
+		if DialogueManager.has_choices():
+			var n: int = queue.pop_front() if not queue.is_empty() else DialogueManager.choices().size()
+			await tap("choice_%d" % n)
+		else:
+			await tap("dialogue_continue")
+		await frames(1)
+
+
+## Places the player near a point (teleport, for unit fixtures) and points the camera at it.
+func place_player(world_: World, pos: Vector3, yaw: float = 0.0) -> void:
+	world_.player.teleport(world_.island.closest_walkable(pos), yaw)
+	world_.camera_rig.set_view(yaw, 50.0, 12.0)
+	world_.camera_rig.snap()
+	await physics_frames(3)

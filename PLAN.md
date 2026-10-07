@@ -123,23 +123,23 @@ Specs: [base flow](SPEC_GAME.md#menu-character-and-intro-m2), [saving](SPEC_SAVE
 Specs: [tutorial](SPEC_GAME.md#tutorial-npc-dialogue-and-hud-m3),
 [inventory transactions](SPEC_GAME.md#inventory-and-transactions).
 
-- [ ] `InteractionSystem`: interactables layer (5) incl. canopy click areas, hover text + hand cursor,
+- [x] `InteractionSystem`: interactables layer (5) incl. canopy click areas, hover text + hand cursor,
       click-to-walk-then-interact, `E` for the nearest one
-- [ ] Instructor Maelis + three villagers (Marla and Old Tobin stationary, Pip wandering)
-- [ ] `DialogueManager` + dialogue panel (live 3D portrait, typed text, Continue, numbered choices,
+- [x] Instructor Maelis + three villagers (Marla and Old Tobin stationary, Pip wandering)
+- [x] `DialogueManager` + dialogue panel (live 3D portrait, typed text, Continue, numbered choices,
       actions such as giving the sword); the message log hides while talking
-- [ ] Five choppable trees in the forest clearing: cancellable chop action with an axe swing, logs,
+- [x] Five choppable trees in the forest clearing: cancellable chop action with an axe swing, logs,
       stumps that regrow after 20 s
-- [ ] `InventoryManager` + inventory panel (`I` or button, 4×7 grid, icons, names, quantities, click to
+- [x] `InventoryManager` + inventory panel (`I` or button, 4×7 grid, icons, names, quantities, click to
       examine)
-- [ ] `QuestManager` with the five objectives (WASD 4 m + click marker; talk; 3 logs; open inventory and
+- [x] `QuestManager` with the five objectives (WASD 4 m + click marker; talk; 3 logs; open inventory and
       examine logs; return → Beginner sword), autosave after each objective
-- [ ] HUD: hitpoints, minimap (island, player arrow, villagers, objective star), quest tracker with
+- [x] HUD: hitpoints, minimap (island, player arrow, villagers, objective star), quest tracker with
       checklist, message log
-- [ ] Exit-gate camera sequence (skippable) + "Tutorial Complete" screen (Continue Exploring / Return to
+- [x] Exit-gate camera sequence (skippable) + "Tutorial Complete" screen (Continue Exploring / Return to
       Main Menu)
-- [ ] Save extended with quest progress and inventory; Continue restores both
-- [ ] Inventory transaction preflight, cancellation and retryable sword delivery; legacy M2–M5 fixture imports
+- [x] Save extended with quest progress and inventory; Continue restores both
+- [x] Inventory transaction preflight, cancellation and retryable sword delivery; legacy M2–M5 fixture imports
 
 ## Milestone 4: Polish
 

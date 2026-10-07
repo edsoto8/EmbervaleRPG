@@ -475,6 +475,14 @@ func _build_forest() -> void:
 	_reserve(IslandLayout.FOREST, IslandLayout.FOREST_RADIUS + 0.5)
 	for p in IslandLayout.CHOPPABLE_TREES:
 		_reserve(p, 1.2)
+		var tree := ChoppableTree.new("normal")
+		tree.name = "ChoppableTree"
+		tree.position = ground_point(p)
+		tree.rotation.y = p.x * 1.7
+		_props.add_child(tree)
+		choppable_trees.append(tree)
+		_keep.append(tree)
+		_occlude(p, 2.0, 0.4)
 	# A ring of woodland around the clearing.
 	var placed := 0
 	var attempts := 0

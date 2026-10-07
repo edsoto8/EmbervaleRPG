@@ -6,6 +6,7 @@ extends Node
 const SUITES := {
 	"world": "res://tests/suites/world_suite.gd",
 	"flow": "res://tests/suites/flow_suite.gd",
+	"tutorial": "res://tests/suites/tutorial_suite.gd",
 }
 
 

@@ -58,9 +58,48 @@ func run() -> void:
 	get_tree().paused = false
 
 
-## Extended by later milestones (tutorial, HUD, skills).
-func post_intro(_w: World) -> void:
-	pass
+## Tutorial HUD, dialogue, inventory and the closing screens.
+func post_intro(w: World) -> void:
+	w.player.teleport(w.island.landmarks.npc_instructor + Vector3(-1.6, 0, 0.4), PI * 0.5)
+	w.camera_rig.set_view(-0.9, 40.0, 9.0)
+	w.camera_rig.snap()
+	QuestManager.report_keyboard_moved(4.0)
+	QuestManager.report_marker_reached()
+	await _frames(10)
+	await shot("09_tutorial_hud")
+	w.director.talk_to(w.director.npcs.maelis)
+	await _seconds(2.5)
+	await shot("10_dialogue")
+	DialogueManager.end()
+	await _frames(5)
+	InventoryManager.add_item("logs", 3)
+	InventoryManager.add_item("coins", 125)
+	InventoryManager.add_item("tinderbox")
+	w.hud.inventory_panel.show_panel()
+	w.hud.inventory_panel.select_slot(0)
+	await _frames(10)
+	await shot("11_inventory")
+	w.hud.inventory_panel.hide_panel()
+	var q := QuestManager.to_dict()
+	q.index = 4
+	QuestManager.from_dict(q)
+	w.director.talk_to(w.director.npcs.maelis)
+	for i in 16:
+		await _seconds(0.3)
+		if not DialogueManager.active:
+			break
+		if DialogueManager.has_choices() and not w.hud.dialogue_panel.is_typing():
+			DialogueManager.choose(DialogueManager.choices().size() - 1)
+		else:
+			w.hud.dialogue_panel._on_continue()
+	await _seconds(3.0)
+	await shot("12_gate_sequence")
+	await _seconds(5.0)
+	await shot("13_tutorial_complete")
+	var panel := get_tree().get_first_node_in_group("modal_panel")
+	if panel:
+		panel.close()
+	await _frames(5)
 
 
 func shot(shot_name: String) -> void:

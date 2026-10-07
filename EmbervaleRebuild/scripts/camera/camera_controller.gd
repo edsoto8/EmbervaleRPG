@@ -28,6 +28,7 @@ var camera: Camera3D
 var focus := Vector3.ZERO
 var _dragging := false
 var _blocked_distance := INF
+var _snapping := false
 
 
 func _ready() -> void:
@@ -46,10 +47,13 @@ func _ready() -> void:
 func snap() -> void:
 	if target == null:
 		return
-	focus = _target_point()
+	# The interpolated transform lags a tick behind a teleport; snap to the real position.
+	focus = target.global_position + Vector3(0, FOCUS_HEIGHT, 0) if target.is_inside_tree() else _target_point()
 	distance = target_distance
 	_blocked_distance = INF
+	_snapping = true
 	_place(1.0)
+	_snapping = false
 
 
 func set_view(new_yaw: float, new_pitch_degrees: float, new_distance: float) -> void:
@@ -59,7 +63,13 @@ func set_view(new_yaw: float, new_pitch_degrees: float, new_distance: float) -> 
 
 
 func _target_point() -> Vector3:
-	var p := target.get_global_transform_interpolated().origin if target.is_inside_tree() else target.position
+	if not target.is_inside_tree():
+		return target.position + Vector3(0, FOCUS_HEIGHT, 0)
+	var real := target.global_position
+	var p := target.get_global_transform_interpolated().origin
+	# Right after a teleport the interpolated transform still points at the old place.
+	if p.distance_to(real) > 1.5:
+		p = real
 	return p + Vector3(0, FOCUS_HEIGHT, 0)
 
 
@@ -101,7 +111,8 @@ func _process(delta: float) -> void:
 
 
 func _place(t: float) -> void:
-	focus = focus.lerp(_target_point(), t)
+	if not _snapping:
+		focus = focus.lerp(_target_point(), t)
 	distance = lerpf(distance, target_distance, t)
 	var dir := Vector3(sin(yaw) * cos(pitch), sin(pitch), cos(yaw) * cos(pitch))
 	var d := distance

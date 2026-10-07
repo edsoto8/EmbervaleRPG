@@ -13,6 +13,9 @@ signal world_ready
 var gameplay_enabled := true
 var intro: IntroCutscene
 var is_ready := false
+var interaction: InteractionSystem
+var director: TutorialDirector
+var hud: GameHUD
 
 
 func _ready() -> void:
@@ -35,6 +38,7 @@ func _ready() -> void:
 		player.visible = false
 	if not island.is_navigation_ready:
 		await island.navigation_ready
+	_build_systems(play_intro)
 	if play_intro:
 		intro = IntroCutscene.new()
 		intro.name = "IntroCutscene"
@@ -57,6 +61,22 @@ func _exit_tree() -> void:
 func _on_setting(key: String, value: Variant) -> void:
 	if key == "mouse_sensitivity":
 		camera_rig.sensitivity = value
+
+
+func _build_systems(hide_hud: bool) -> void:
+	interaction = InteractionSystem.new()
+	interaction.name = "InteractionSystem"
+	add_child(interaction)
+	interaction.setup(self)
+	director = TutorialDirector.new()
+	director.name = "TutorialDirector"
+	add_child(director)
+	hud = GameHUD.new()
+	hud.name = "HUD"
+	add_child(hud)
+	hud.setup(self, director, interaction)
+	hud.visible = not hide_hud
+	director.setup(self)
 
 
 ## True once the player stands in the world for real (navigation ready, intro over).
@@ -105,6 +125,7 @@ func set_gameplay_enabled(enabled: bool) -> void:
 
 func intro_finished() -> void:
 	intro = null
+	hud.visible = true
 	set_gameplay_enabled(true)
 	GameManager.intro_finished()
 

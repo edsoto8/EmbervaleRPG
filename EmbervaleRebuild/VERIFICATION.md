@@ -35,3 +35,23 @@ counts and generation times are. Native Windows and real-hardware checks are lis
   intro boat/flyover/dock, gameplay, pause.
 - Not verified here: window resolution/fullscreen changes (skipped under the headless display server),
   character preview feel and camera hand-off on real hardware.
+
+## Milestone 3 — Tutorial systems
+
+- Import/parse: clean (all scripts compile).
+- `world` + `flow` + `tutorial`: 67 passed, 0 failed. `tutorial` drives every objective through real
+  input (WASD, clicks projected from the camera, E, I, Space/number keys, HUD buttons): movement in
+  both orders and the click-only marker rule, Maelis before movement (no progress), the introduction
+  with informational branches returning to choices and the reveal-then-advance key behaviour,
+  dialogue blocking movement and world clicks, clicking trees to walk and chop to three logs, 2 s
+  chops cancelled by movement, pause freezing a chop, full-inventory chop refusal, early logs counting
+  on activation, inventory inspection rules (panel must be open during the objective; earlier
+  inspections don't count), Esc closing the inventory before pausing, the full-inventory sword retry
+  ending in the gate sequence and Tutorial Complete with completion and sword saved together, no
+  replay or duplicate sword on Continue, the gate sequence watched for 7.2 s and Return to Main Menu,
+  NPC presence/dialogue and Pip's 5 m wander, reaching Marla across her counter, hover text, UI clicks
+  never moving the player, confirmed Drop with the sword protected, a mid-tutorial save round trip,
+  and the imported completed-tutorial sword repair (once; retryable through Maelis when full).
+- Screenshots inspected: tutorial HUD, dialogue with live portrait, inventory, gate pan, Tutorial
+  Complete.
+- Not verified here: completing the tutorial by hand on real hardware.

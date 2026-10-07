@@ -9,6 +9,8 @@ signal action_finished(action_name: String)
 
 const WALK_SPEED := 3.4
 const RUN_SPEED := 6.2
+## Overall scale of the rig (about 1.8 m tall).
+const RIG_SCALE := 0.9
 
 var appearance: Dictionary = Appearance.defaults()
 ## Number of primitive meshes before merging (merged parts keep draw calls low).
@@ -19,6 +21,7 @@ var current_action := ""
 ## Looks around now and then while idle (Milestone 4 polish).
 var idle_glances := true
 
+var rig: Node3D
 var hips: Node3D
 var torso: Node3D
 var head: Node3D
@@ -70,7 +73,9 @@ func build(look: Dictionary) -> void:
 	var bw: float = [0.86, 1.0, 1.2][look.body_type]
 	var boot := Color("3d2b1f")
 
-	hips = _pivot(self, "Hips", Vector3(0, 0.92, 0))
+	rig = _pivot(self, "Rig", Vector3.ZERO)
+	rig.scale = Vector3.ONE * RIG_SCALE
+	hips = _pivot(rig, "Hips", Vector3(0, 0.92, 0))
 	torso = _pivot(hips, "Torso", Vector3(0, 0.08, 0))
 	_mesh(torso, PropFactory.box_mesh(Vector3(0.44 * bw, 0.2, 0.24)), pants, Vector3(0, -0.05, 0))
 	_mesh(torso, PropFactory.box_mesh(Vector3(0.48 * bw, 0.56, 0.27)), shirt, Vector3(0, 0.3, 0))

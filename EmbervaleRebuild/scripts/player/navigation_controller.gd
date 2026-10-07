@@ -33,6 +33,9 @@ var _best := INF
 var _stuck := 0.0
 ## Callable invoked when the route ends at its destination (pending interaction), else empty.
 var _on_arrive := Callable()
+## For interaction approaches: arrive as soon as the player is within `_reach` of this point.
+var _reach_target := Vector3.INF
+var _reach := 0.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -105,6 +108,7 @@ func walk_to(point: Vector3, arrival: float = ARRIVAL_TOLERANCE, on_arrive: Call
 	_index = 1
 	_active = true
 	from_click = false
+	_reach_target = Vector3.INF
 	_arrival = arrival
 	_destination = closest
 	_best = INF
@@ -122,12 +126,18 @@ func _finish_immediately(point: Vector3, on_arrive: Callable) -> void:
 		on_arrive.call()
 
 
-## Approaches a point and calls `on_arrive` once within `arrival` metres (pending interaction).
-func approach(point: Vector3, arrival: float, on_arrive: Callable) -> bool:
-	if _flat(player.global_position, point) <= arrival:
+## Approaches a point and calls `on_arrive` once within `reach` metres of it (pending interaction).
+## The route heads for the closest walkable point; arrival is measured to the target itself.
+func approach(point: Vector3, reach: float, on_arrive: Callable, goal: Vector3 = Vector3.INF) -> bool:
+	if _flat(player.global_position, point) <= reach:
 		_finish_immediately(point, on_arrive)
 		return true
-	return walk_to(point, arrival, on_arrive)
+	var dest := goal if goal != Vector3.INF else point
+	if not walk_to(dest, ARRIVAL_TOLERANCE, on_arrive):
+		return false
+	_reach_target = point
+	_reach = reach
+	return true
 
 
 func cancel(reason: String = "") -> void:
@@ -136,6 +146,7 @@ func cancel(reason: String = "") -> void:
 	_path = PackedVector3Array()
 	_on_arrive = Callable()
 	from_click = false
+	_reach_target = Vector3.INF
 	if was_active:
 		navigation_cancelled.emit(reason)
 
@@ -163,7 +174,8 @@ func steer(pos: Vector3, speed: float, delta: float) -> Vector3:
 			_stuck = 0.0
 		else:
 			break
-	if _index >= _path.size() or _flat(pos, _destination) <= _arrival:
+	if _index >= _path.size() or _flat(pos, _destination) <= _arrival \
+			or (_reach_target != Vector3.INF and _flat(pos, _reach_target) <= _reach):
 		_arrive()
 		return Vector3.ZERO
 	var wp := _path[_index]
@@ -184,6 +196,7 @@ func steer(pos: Vector3, speed: float, delta: float) -> Vector3:
 
 func _arrive() -> void:
 	_active = false
+	_reach_target = Vector3.INF
 	var cb := _on_arrive
 	_on_arrive = Callable()
 	var by_click := from_click
