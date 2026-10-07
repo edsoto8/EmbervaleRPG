@@ -26,7 +26,10 @@ var skills_button: Button
 var xp_drops: VBoxContainer
 var hover_label: Label
 var bottom_right: HBoxContainer
+var hp_bar: HitpointsBar
+var banner: Label
 var messages: Array[String] = []
+var _log_idle := 0.0
 var _connections: Array = []
 
 
@@ -88,6 +91,9 @@ func setup(w: World, d: TutorialDirector, i: InteractionSystem) -> void:
 	_link(interaction.hover_changed, _on_hover)
 	_link(SkillsManager.hitpoints_changed, refresh_hitpoints)
 	_link(SkillsManager.xp_gained, show_xp_drop)
+	_link(SkillsManager.level_up, _on_level_up)
+	_link(QuestManager.task_completed, func(id: String) -> void: show_banner("Task complete: %s" % TaskData.text(id)))
+	_link(QuestManager.all_tasks_completed, func() -> void: show_banner("Driftwood Isle mastered!"))
 	refresh_tracker()
 	refresh_hitpoints(SkillsManager.hitpoints, SkillData.MAX_HITPOINTS)
 
@@ -121,11 +127,27 @@ func _build_minimap() -> void:
 	minimap.setup(world.island, world.player, director)
 	var hp := UITheme.panel(6)
 	hp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hp_label = UITheme.label("", 16, Color("ff8a7a"))
+	var hp_col := UITheme.vbox(2)
+	hp_label = UITheme.label("", 15, Color("ff8a7a"))
 	hp_label.name = "Hitpoints"
 	hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hp.add_child(hp_label)
+	hp_col.add_child(hp_label)
+	hp_bar = HitpointsBar.new()
+	hp_bar.custom_minimum_size = Vector2(168, 18)
+	hp_col.add_child(hp_bar)
+	hp.add_child(hp_col)
 	box.add_child(hp)
+	banner = UITheme.label("", 30, UITheme.ACCENT)
+	banner.name = "Banner"
+	banner.add_theme_constant_override("outline_size", 8)
+	banner.add_theme_color_override("font_outline_color", Color("3a2410"))
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	banner.position.y = 110
+	banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner.modulate.a = 0.0
+	root.add_child(banner)
 
 
 func _build_tracker() -> void:
@@ -208,10 +230,32 @@ func post(text: String) -> void:
 		var l := UITheme.wrapped(messages[k], 15, UITheme.TEXT if k == messages.size() - 1 else UITheme.MUTED, 448)
 		log_box.add_child(l)
 	log_panel.visible = not DialogueManager.active
+	_log_idle = 0.0
+	log_panel.modulate.a = 1.0
 
 
 func refresh_hitpoints(current: int = 10, maximum: int = 10) -> void:
 	hp_label.text = "Hitpoints  %d / %d" % [current, maximum]
+	if hp_bar:
+		hp_bar.set_values(current, maximum)
+
+
+func _on_level_up(skill: String, level: int) -> void:
+	show_banner("%s level %d!" % [SkillData.SKILL_NAMES[skill], level])
+
+
+## A short centred announcement (level-ups, tasks).
+func show_banner(text: String) -> void:
+	banner.text = text
+	banner.modulate.a = 0.0
+	banner.scale = Vector2(0.8, 0.8)
+	banner.pivot_offset = banner.size * 0.5
+	var t := banner.create_tween()
+	t.set_parallel(true)
+	t.tween_property(banner, "modulate:a", 1.0, 0.25)
+	t.tween_property(banner, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.chain().tween_interval(2.2)
+	t.chain().tween_property(banner, "modulate:a", 0.0, 0.5)
 
 
 func refresh_tracker() -> void:
@@ -306,9 +350,13 @@ func _on_hover(target: Node) -> void:
 	hover_label.text = interaction.hover_text(target)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if hover_label.text != "":
 		hover_label.position = root.get_local_mouse_position() + Vector2(18, 12)
+	# The message log fades back once nothing new has been said for a while.
+	if log_panel.visible:
+		_log_idle += delta
+		log_panel.modulate.a = lerpf(1.0, 0.45, clampf((_log_idle - 8.0) / 2.0, 0.0, 1.0))
 
 
 func _unhandled_input(event: InputEvent) -> void:

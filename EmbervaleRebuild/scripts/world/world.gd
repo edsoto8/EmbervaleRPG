@@ -17,6 +17,8 @@ var interaction: InteractionSystem
 var director: TutorialDirector
 var skills: SkillsDirector
 var hud: GameHUD
+var hover_ring: HoverHighlight
+var dust: CPUParticles3D
 
 
 func _ready() -> void:
@@ -64,6 +66,43 @@ func _exit_tree() -> void:
 
 func _on_footstep(_foot: int) -> void:
 	AudioManager.footstep(surface_at(player.global_position))
+	if dust and player.velocity.length() > 4.5:
+		dust.global_position = player.global_position + Vector3(0, 0.08, 0)
+		dust.restart()
+
+
+func _build_dust() -> void:
+	dust = CPUParticles3D.new()
+	dust.name = "FootDust"
+	dust.emitting = false
+	dust.one_shot = true
+	dust.amount = 5
+	dust.lifetime = 0.5
+	dust.explosiveness = 1.0
+	dust.direction = Vector3(0, 1, 0)
+	dust.spread = 50.0
+	dust.initial_velocity_min = 0.4
+	dust.initial_velocity_max = 0.9
+	dust.gravity = Vector3(0, 0.3, 0)
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(0.85, 0.8, 0.65, 0.5))
+	ramp.set_color(1, Color(0.85, 0.8, 0.65, 0.0))
+	dust.color_ramp = ramp
+	var grow := Curve.new()
+	grow.add_point(Vector2(0, 0.5))
+	grow.add_point(Vector2(1, 1.6))
+	dust.scale_amount_curve = grow
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.vertex_color_use_as_albedo = true
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.22, 0.22)
+	quad.material = mat
+	dust.mesh = quad
+	dust.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(dust)
 
 
 ## Footstep surface under a point.
@@ -95,6 +134,11 @@ func _build_systems(hide_hud: bool) -> void:
 	interaction.name = "InteractionSystem"
 	add_child(interaction)
 	interaction.setup(self)
+	hover_ring = HoverHighlight.new()
+	hover_ring.name = "HoverHighlight"
+	add_child(hover_ring)
+	hover_ring.connect_to(interaction)
+	_build_dust()
 	director = TutorialDirector.new()
 	director.name = "TutorialDirector"
 	add_child(director)

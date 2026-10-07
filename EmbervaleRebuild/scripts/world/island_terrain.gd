@@ -193,17 +193,39 @@ func tile_color(i: int, j: int) -> Color:
 		Tile.SAND, Tile.DOCK_SAND:
 			c = Color("e2cf98").lerp(Color("d5bd82"), 0.5 + n * 0.5)
 		Tile.GRASS:
-			c = Color("6e9e45").lerp(Color("5a8a3a"), 0.5 + n * 0.5)
-			if _hash01(i * 7, j * 13) > 0.93:
-				c = c.lerp(Color("8fb052"), 0.5)
+			# Broad meadow patches from low-frequency noise, with the odd lighter or clover tile.
+			var patch := noise.get_noise_2d(x * 0.6 + 40.0, z * 0.6 - 25.0)
+			c = Color("6a9c43").lerp(Color("82b14c"), 0.5 + patch * 0.5)
+			c = c.lerp(Color("5f8f3c"), 0.5 + n * 0.3)
+			var g := _hash01(i * 7, j * 13)
+			if g > 0.94:
+				c = c.lerp(Color("9ac25a"), 0.5)
+			elif g < 0.04:
+				c = c.lerp(Color("4f8a3e"), 0.5)
 		Tile.FOREST:
-			c = Color("4f7a35").lerp(Color("5d6e34"), 0.5 + n * 0.5)
+			var patch := noise.get_noise_2d(x * 0.6 + 40.0, z * 0.6 - 25.0)
+			c = Color("4d7c34").lerp(Color("5d8a3a"), 0.5 + patch * 0.5)
+			c = c.lerp(Color("586d33"), 0.5 + n * 0.3)
 		Tile.PATH:
-			c = Color("b0915f").lerp(Color("9f8152"), 0.5 + n * 0.5)
+			c = Color("b4955f").lerp(Color("a3845a"), 0.5 + n * 0.5)
+			if _hash01(i * 3, j * 5) > 0.9:
+				c = c.lerp(Color("c5a878"), 0.4)
 		Tile.PLAZA:
-			c = Color("aaa496") if (i + j) % 2 == 0 else Color("9a9588")
+			# Flagstones: three warm greys with an occasional darker or mossy stone.
+			var f := _hash01(i * 11, j * 17)
+			c = Color("b3ab9a") if f < 0.34 else (Color("a79f8f") if f < 0.68 else Color("9c9586"))
+			if f > 0.96:
+				c = Color("8b8577")
+			elif _hash01(i * 23, j * 29) < 0.05:
+				c = c.lerp(Color("8f9a6a"), 0.35)
 		Tile.COURTYARD:
-			c = Color("a59c86") if (i / 2 + j / 2) % 2 == 0 else Color("958d78")
+			# Larger packed-earth flags, worn lighter down the middle.
+			var f := _hash01(i / 2 * 11, j / 2 * 17)
+			c = Color("b0a68c") if f < 0.5 else Color("a39a80")
+			if f > 0.93:
+				c = Color("948b72")
+			var wear := 1.0 - clampf(absf(x - 25.0) / 9.0, 0.0, 1.0)
+			c = c.lightened(wear * 0.06)
 		Tile.POND_BED:
 			c = Color("7b7350")
 		Tile.MUD:

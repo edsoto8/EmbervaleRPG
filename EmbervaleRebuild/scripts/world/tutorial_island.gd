@@ -347,23 +347,45 @@ func _build_cottage(parent: Node, c: Vector2) -> void:
 	var wall := Color("e6d9bb")
 	var timber := Color("6b4a2b")
 	var roof := Color("9a4a32") if int(c.x + c.y) % 2 == 0 else Color("7d5a3a")
-	PropFactory.box(cot, Vector3(size.x + 0.3, 0.4, size.y + 0.3), Vector3(0, 0.0, 0), Color("8d8a82"))
+	var stone := Color("8d8a82")
+	var glass := Color("4f7f99")
+	var shutter := roof.darkened(0.25)
+	var front := -size.y * 0.5
+	PropFactory.box(cot, Vector3(size.x + 0.3, 0.4, size.y + 0.3), Vector3(0, 0.0, 0), stone)
+	PropFactory.box(cot, Vector3(size.x + 0.1, 0.5, size.y + 0.1), Vector3(0, 0.3, 0), stone.darkened(0.08))
 	PropFactory.box(cot, Vector3(size.x, 2.6, size.y), Vector3(0, 1.3, 0), wall)
 	for sx in [-1.0, 1.0]:
 		for sz in [-1.0, 1.0]:
 			PropFactory.box(cot, Vector3(0.22, 2.7, 0.22), Vector3(sx * size.x * 0.5, 1.35, sz * size.y * 0.5), timber)
+	# Timber frame: a mid-height rail and diagonal braces on the front and back walls.
+	for fz in [front - 0.04, -front + 0.04]:
+		PropFactory.box(cot, Vector3(size.x, 0.12, 0.08), Vector3(0, 2.05, fz), timber)
+		for sx in [-1.0, 1.0]:
+			PropFactory.box(cot, Vector3(0.1, 1.1, 0.08), Vector3(sx * (size.x * 0.5 - 0.95), 1.5, fz), timber, Vector3(0, 0, sx * 0.55))
 	PropFactory.box(cot, Vector3(size.x + 0.05, 0.18, size.y + 0.05), Vector3(0, 2.55, 0), timber)
-	PropFactory.prism(cot, Vector3(size.y + 0.7, 1.8, size.x + 0.7), Vector3(0, 3.5, 0), roof, Vector3(0, PI * 0.5, 0))
-	PropFactory.box(cot, Vector3(0.95, 1.8, 0.12), Vector3(0, 0.9, -size.y * 0.5 - 0.04), Color("5a3b22"))
-	PropFactory.box(cot, Vector3(0.08, 0.08, 0.06), Vector3(0.3, 0.95, -size.y * 0.5 - 0.12), Color("c9a34a"))
+	PropFactory.prism(cot, Vector3(size.y + 0.9, 1.8, size.x + 0.7), Vector3(0, 3.5, 0), roof, Vector3(0, PI * 0.5, 0))
+	PropFactory.box(cot, Vector3(size.x + 0.8, 0.14, 0.26), Vector3(0, 4.38, 0), roof.darkened(0.3))
+	PropFactory.box(cot, Vector3(size.x + 0.72, 0.1, size.y + 0.95), Vector3(0, 2.62, 0), roof.darkened(0.35))
+	# Door with a step, frame and handle.
+	PropFactory.box(cot, Vector3(1.2, 1.95, 0.1), Vector3(0, 0.98, front - 0.05), timber)
+	PropFactory.box(cot, Vector3(0.95, 1.8, 0.12), Vector3(0, 0.9, front - 0.08), Color("5a3b22"))
+	PropFactory.box(cot, Vector3(0.08, 0.08, 0.06), Vector3(0.3, 0.95, front - 0.16), Color("c9a34a"))
+	PropFactory.box(cot, Vector3(1.3, 0.16, 0.6), Vector3(0, 0.08, front - 0.3), stone)
 	for wx in [-1.6, 1.6]:
-		PropFactory.box(cot, Vector3(0.8, 0.7, 0.1), Vector3(wx, 1.5, -size.y * 0.5 - 0.02), Color("3e5a6e"))
-		PropFactory.box(cot, Vector3(0.95, 0.1, 0.16), Vector3(wx, 1.12, -size.y * 0.5 - 0.05), timber)
+		PropFactory.box(cot, Vector3(0.8, 0.7, 0.1), Vector3(wx, 1.5, front - 0.02), glass)
+		PropFactory.box(cot, Vector3(0.06, 0.74, 0.12), Vector3(wx, 1.5, front - 0.03), timber)
+		PropFactory.box(cot, Vector3(0.84, 0.06, 0.12), Vector3(wx, 1.5, front - 0.03), timber)
+		PropFactory.box(cot, Vector3(0.95, 0.1, 0.16), Vector3(wx, 1.12, front - 0.05), timber)
+		for sx in [-1.0, 1.0]:
+			PropFactory.box(cot, Vector3(0.28, 0.76, 0.06), Vector3(wx + sx * 0.56, 1.5, front - 0.04), shutter)
+		PropFactory.box(cot, Vector3(0.9, 0.12, 0.3), Vector3(wx, 1.1, front - 0.18), Color("6e8f3a"))
 	for wz in [-0.8, 0.9]:
 		for sx in [-1.0, 1.0]:
-			PropFactory.box(cot, Vector3(0.1, 0.7, 0.75), Vector3(sx * (size.x * 0.5 + 0.02), 1.5, wz), Color("3e5a6e"))
+			PropFactory.box(cot, Vector3(0.1, 0.7, 0.75), Vector3(sx * (size.x * 0.5 + 0.02), 1.5, wz), glass)
+			PropFactory.box(cot, Vector3(0.12, 0.06, 0.8), Vector3(sx * (size.x * 0.5 + 0.03), 1.5, wz), timber)
 	var chimney := Vector3(size.x * 0.28, 3.8, size.y * 0.25)
 	PropFactory.box(cot, Vector3(0.6, 1.8, 0.6), chimney, Color("7f7b73"))
+	PropFactory.box(cot, Vector3(0.74, 0.16, 0.74), chimney + Vector3(0, 0.95, 0), Color("6a665e"))
 	chimney_tops.append(cot.position + Basis(Vector3.UP, yaw) * (chimney + Vector3(0, 0.95, 0)))
 	var body := PropFactory.solid(cot, "Body", Vector3.ZERO, Layers.OBSTACLES | Layers.CAMERA_BLOCKERS)
 	PropFactory.box_shape(body, Vector3(size.x + 0.2, 4.4, size.y + 0.2), Vector3(0, 2.2, 0))
@@ -571,19 +593,32 @@ func _build_tree(parent: Node, p: Vector2, pine: bool, scale: float = -1.0) -> N
 	var s := scale if scale > 0.0 else _rng.randf_range(0.85, 1.25)
 	var tree := _node_at(parent, "Tree", p, _rng.randf() * TAU)
 	var trunk := Color("6b4a2b")
+	var h := IslandTerrain._hash01(int(p.x * 7.0), int(p.y * 7.0))
 	if pine:
-		PropFactory.cylinder(tree, 0.16 * s, 0.24 * s, 1.6 * s, Vector3(0, 0.8 * s, 0), trunk, 6)
-		var greens := [Color("2f5e2e"), Color("3a6b33"), Color("447a3a")]
-		for k in 3:
-			var cone := PropFactory.cone(tree, (1.5 - k * 0.38) * s, 1.6 * s, Vector3(0, (1.7 + k * 0.85) * s, 0), greens[k], 7)
-			PropFactory.swaying(cone, 0.3 + k * 0.15, true)
+		PropFactory.cylinder(tree, 0.16 * s, 0.26 * s, 1.6 * s, Vector3(0, 0.8 * s, 0), trunk, 6)
+		var base := Color("2c5a2c").lerp(Color("3b6a2f"), h)
+		for k in 4:
+			var r := (1.55 - k * 0.32) * s
+			var y := (1.5 + k * 0.78) * s
+			var off := Vector3(cos(h * 6.0 + k) * 0.08, 0, sin(h * 6.0 + k) * 0.08) * s
+			var cone := PropFactory.cone(tree, r, 1.45 * s, Vector3(0, y, 0) + off, base.lightened(k * 0.06), 7)
+			PropFactory.swaying(cone, 0.25 + k * 0.12, true)
+		PropFactory.swaying(PropFactory.sphere(tree, 0.14 * s, Vector3(0, 5.1 * s, 0), base.lightened(0.3), Vector3.ONE, 5, 3), 0.7)
 	else:
-		PropFactory.cylinder(tree, 0.18 * s, 0.26 * s, 2.2 * s, Vector3(0, 1.1 * s, 0), trunk, 6)
-		var g := Color("4f8a3a").lerp(Color("6a9a3e"), _rng.randf())
-		var c1 := PropFactory.sphere(tree, 1.25 * s, Vector3(0, 2.7 * s, 0), g, Vector3(1, 0.85, 1))
-		var c2 := PropFactory.sphere(tree, 0.85 * s, Vector3(0.55 * s, 3.25 * s, 0.25 * s), g.lightened(0.08))
-		PropFactory.swaying(c1, 0.35)
-		PropFactory.swaying(c2, 0.5)
+		PropFactory.cylinder(tree, 0.18 * s, 0.3 * s, 2.3 * s, Vector3(0, 1.15 * s, 0), trunk, 7)
+		for k in 3:
+			var a := h * TAU + k * TAU / 3.0
+			PropFactory.box(tree, Vector3(0.6, 0.2, 0.2) * s, Vector3(cos(a) * 0.32, 0.08, sin(a) * 0.32) * s,
+					trunk.darkened(0.1), Vector3(0, -a, 0.3))
+		var g := Color("4a8638").lerp(Color("6ea043"), _rng.randf())
+		var shade := g.darkened(0.22)
+		# A shaded under-canopy, a broad main crown and two lighter lobes catching the sun.
+		PropFactory.swaying(PropFactory.sphere(tree, 1.15 * s, Vector3(0, 2.35 * s, 0), shade, Vector3(1.1, 0.6, 1.1)), 0.3)
+		PropFactory.swaying(PropFactory.sphere(tree, 1.3 * s, Vector3(0, 2.85 * s, 0), g, Vector3(1, 0.8, 1)), 0.35)
+		var a1 := h * TAU
+		PropFactory.swaying(PropFactory.sphere(tree, 0.8 * s, Vector3(cos(a1) * 0.7, 3.4, sin(a1) * 0.7) * s, g.lightened(0.1)), 0.5)
+		PropFactory.swaying(PropFactory.sphere(tree, 0.65 * s, Vector3(cos(a1 + 2.3) * 0.75, 3.15, sin(a1 + 2.3) * 0.75) * s, g.lightened(0.16)), 0.55)
+		PropFactory.swaying(PropFactory.sphere(tree, 0.5 * s, Vector3(0, 3.85 * s, 0), g.lightened(0.22)), 0.6)
 	var body := PropFactory.solid(tree, "Trunk", Vector3.ZERO)
 	PropFactory.cylinder_shape(body, 0.35 * s, 2.2, Vector3(0, 1.1, 0))
 	_reserve(p, 1.6 * s)
@@ -787,10 +822,15 @@ func _build_scatter() -> void:
 			continue
 		var bush := _node_at(scatter, "Bush", p)
 		var g := Color("4b8236").lerp(Color("5f9440"), _rng.randf())
-		var b1 := PropFactory.sphere(bush, 0.6, Vector3(0, 0.45, 0), g, Vector3(1.2, 0.8, 1.0))
-		var b2 := PropFactory.sphere(bush, 0.42, Vector3(0.45, 0.35, 0.2), g.lightened(0.07))
-		PropFactory.swaying(b1, 0.25)
-		PropFactory.swaying(b2, 0.3)
+		var bh := IslandTerrain._hash01(int(p.x * 5.0), int(p.y * 5.0))
+		PropFactory.swaying(PropFactory.sphere(bush, 0.62, Vector3(0, 0.38, 0), g.darkened(0.2), Vector3(1.25, 0.6, 1.1)), 0.2)
+		PropFactory.swaying(PropFactory.sphere(bush, 0.55, Vector3(0, 0.5, 0), g, Vector3(1.1, 0.85, 1.0)), 0.25)
+		PropFactory.swaying(PropFactory.sphere(bush, 0.4, Vector3(0.42, 0.42, 0.2), g.lightened(0.1)), 0.3)
+		PropFactory.swaying(PropFactory.sphere(bush, 0.34, Vector3(-0.36, 0.5, -0.18), g.lightened(0.16)), 0.32)
+		if bh > 0.6:
+			for q in 4:
+				var ba := q * 1.6 + bh
+				PropFactory.sphere(bush, 0.05, Vector3(cos(ba) * 0.5, 0.55 + (q % 2) * 0.12, sin(ba) * 0.5), Color("d8403a"), Vector3.ONE, 4, 2)
 		var body := PropFactory.solid(bush, "Body", Vector3.ZERO)
 		PropFactory.cylinder_shape(body, 0.7, 1.1, Vector3(0, 0.55, 0))
 		_reserve(p, 1.0)

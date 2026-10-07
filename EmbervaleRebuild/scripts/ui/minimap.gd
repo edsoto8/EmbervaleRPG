@@ -60,6 +60,13 @@ func _draw() -> void:
 		var target := director.objective_target()
 		if target != Vector3.INF:
 			_star(to_map(target), 7.0 + sin(_time * 4.0), Color("ffd36a"))
+	for spot in get_tree().get_nodes_in_group("fishing_spot"):
+		var c := to_map(spot.global_position)
+		draw_arc(c, 2.5 + 1.0 * sin(_time * 3.0), 0, TAU, 12, Color(0.85, 0.95, 1.0, 0.9), 1.2)
+	for fire in get_tree().get_nodes_in_group("fire"):
+		if fire.is_burning():
+			var c := to_map(fire.global_position)
+			draw_colored_polygon(PackedVector2Array([c + Vector2(0, -4.5), c + Vector2(3, 2.5), c + Vector2(-3, 2.5)]), Color("ff8a3a"))
 	if player:
 		var c := to_map(player.global_position)
 		var yaw := player.facing_yaw()

@@ -24,6 +24,7 @@ var talking := false
 var _path := PackedVector3Array()
 var _path_index := 0
 var _wait := 2.0
+var _looking := false
 var _rng := RandomNumberGenerator.new()
 
 
@@ -111,7 +112,22 @@ func cheer() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not wanders or talking or island == null or not island.is_navigation_ready:
+	if talking:
+		return
+	# Villagers turn to look at the player when they come close, and back again when they leave.
+	var world := GameManager.world()
+	var player_near := false
+	if world != null and world.player_ready():
+		var p := world.player.global_position
+		var d := Vector2(p.x - global_position.x, p.z - global_position.z).length()
+		if d < 4.0 and d > 0.3:
+			player_near = true
+			if not (wanders and _path_index < _path.size()):
+				model.face_towards(p)
+	if _looking and not player_near:
+		model.face_towards(global_position + Basis(Vector3.UP, home_yaw) * Vector3.FORWARD)
+	_looking = player_near
+	if not wanders or island == null or not island.is_navigation_ready:
 		model.locomotion_speed = 0.0
 		return
 	if _path_index >= _path.size():

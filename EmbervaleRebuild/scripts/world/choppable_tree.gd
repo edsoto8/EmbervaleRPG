@@ -32,9 +32,14 @@ func _ready() -> void:
 	var trunk := Color("6b4a2b")
 	match tree_type:
 		"oak":
-			PropFactory.cylinder(full_visual, 0.26, 0.38, 2.4, Vector3(0, 1.2, 0), Color("5e4126"), 7)
-			for c in [[Vector3(0, 3.0, 0), 1.6, Color("3f7a32")], [Vector3(0.8, 3.5, 0.3), 1.0, Color("4a8a38")],
-					[Vector3(-0.7, 3.4, -0.4), 1.05, Color("447f35")]]:
+			PropFactory.cylinder(full_visual, 0.26, 0.42, 2.4, Vector3(0, 1.2, 0), Color("5e4126"), 7)
+			for k in 3:
+				var a := k * TAU / 3.0 + 0.4
+				PropFactory.box(full_visual, Vector3(0.75, 0.26, 0.26), Vector3(cos(a) * 0.42, 0.1, sin(a) * 0.42),
+						Color("4f3620"), Vector3(0, -a, 0.3))
+			PropFactory.swaying(PropFactory.sphere(full_visual, 1.5, Vector3(0, 2.6, 0), Color("2f5f27"), Vector3(1.15, 0.55, 1.15)), 0.3)
+			for c in [[Vector3(0, 3.1, 0), 1.65, Color("3f7a32")], [Vector3(0.9, 3.6, 0.3), 1.0, Color("4a8a38")],
+					[Vector3(-0.8, 3.5, -0.4), 1.05, Color("447f35")], [Vector3(0.2, 4.2, -0.3), 0.7, Color("5a9a42")]]:
 				PropFactory.swaying(PropFactory.sphere(full_visual, c[1], c[0], c[2], Vector3(1, 0.8, 1)), 0.35)
 		"willow":
 			PropFactory.cylinder(full_visual, 0.22, 0.32, 2.6, Vector3(0, 1.3, 0), Color("6f5a3e"), 7)
@@ -44,9 +49,13 @@ func _ready() -> void:
 				var strand := PropFactory.cylinder(full_visual, 0.1, 0.32, 2.2, Vector3(cos(a) * 1.25, 2.1, sin(a) * 1.25), Color("8ab055"), 5)
 				PropFactory.swaying(strand, 0.7, true)
 		_:
-			PropFactory.cylinder(full_visual, 0.18, 0.26, 2.2, Vector3(0, 1.1, 0), trunk, 6)
-			PropFactory.swaying(PropFactory.sphere(full_visual, 1.25, Vector3(0, 2.7, 0), Color("5a9440"), Vector3(1, 0.85, 1)), 0.35)
-			PropFactory.swaying(PropFactory.sphere(full_visual, 0.85, Vector3(0.55, 3.25, 0.25), Color("66a046")), 0.5)
+			PropFactory.cylinder(full_visual, 0.18, 0.3, 2.3, Vector3(0, 1.15, 0), trunk, 7)
+			var g := Color("559640")
+			PropFactory.swaying(PropFactory.sphere(full_visual, 1.15, Vector3(0, 2.35, 0), g.darkened(0.22), Vector3(1.1, 0.6, 1.1)), 0.3)
+			PropFactory.swaying(PropFactory.sphere(full_visual, 1.3, Vector3(0, 2.85, 0), g, Vector3(1, 0.8, 1)), 0.35)
+			PropFactory.swaying(PropFactory.sphere(full_visual, 0.8, Vector3(0.7, 3.4, 0.2), g.lightened(0.1)), 0.5)
+			PropFactory.swaying(PropFactory.sphere(full_visual, 0.65, Vector3(-0.55, 3.15, -0.5), g.lightened(0.16)), 0.55)
+			PropFactory.swaying(PropFactory.sphere(full_visual, 0.5, Vector3(0, 3.85, 0), g.lightened(0.22)), 0.6)
 	PropFactory.cylinder(stump_visual, 0.3, 0.38, 0.45, Vector3(0, 0.22, 0), trunk, 7)
 	PropFactory.cylinder(stump_visual, 0.28, 0.28, 0.02, Vector3(0, 0.455, 0), Color("c9a774"), 7)
 	MeshMerger.merge(full_visual, [], 100.0, {"name": "TreeMesh", "single": true})

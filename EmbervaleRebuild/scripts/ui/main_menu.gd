@@ -64,6 +64,9 @@ func _build_ui() -> void:
 	column.offset_right = 420
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(column)
+	var mark := EmberMark.new()
+	mark.custom_minimum_size = Vector2(300, 74)
+	column.add_child(mark)
 	column.add_child(UITheme.title("EMBERVALE", 64))
 	var sub := UITheme.label("Driftwood Isle", 24, UITheme.TEXT)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
