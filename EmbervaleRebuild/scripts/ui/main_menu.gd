@@ -30,6 +30,8 @@ func _ready() -> void:
 	_place_camera()
 	_build_ui()
 	refresh()
+	AudioManager.stop_ambience()
+	AudioManager.play_music("menu_theme")
 
 
 func _process(delta: float) -> void:

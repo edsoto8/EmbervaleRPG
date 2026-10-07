@@ -31,6 +31,7 @@ var sea: MeshInstance3D
 var pond: MeshInstance3D
 var terrain_mesh: MeshInstance3D
 var decor_chunks: Array = []
+var ambient: AmbientLife
 
 var _rng := RandomNumberGenerator.new()
 var _cover_rng := RandomNumberGenerator.new()
@@ -81,6 +82,7 @@ func generate() -> void:
 	_stage("terrain_mesh", _build_terrain_mesh)
 	_stage("water", _build_water)
 	_stage("merge_meshes", _merge_meshes)
+	_stage("ambient_life", _build_ambient_life)
 	_stage("bake_navigation", _bake_navigation)
 	await _wait_for_map_sync()
 	generation_time_ms = (Time.get_ticks_usec() - t0) / 1000.0
@@ -863,6 +865,13 @@ func _merge_meshes() -> void:
 	var far := get_node_or_null("MainlandProps")
 	if far:
 		MeshMerger.merge(far, [], 200.0, {"target": batches, "name": "Far", "cast_shadow": false})
+
+
+## Clouds, gulls and chimney smoke: created after batching so they stay animated and independent.
+func _build_ambient_life() -> void:
+	ambient = AmbientLife.new()
+	add_child(ambient)
+	ambient.setup(self)
 
 
 ## Sets how far small decoration stays visible (graphics presets).

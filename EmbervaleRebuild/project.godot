@@ -13,6 +13,8 @@ run/main_scene="res://scenes/ui/main_menu.tscn"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="EmbervaleRebuild"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://icon.svg"
+config/windows_native_icon=""
 run/max_fps=0
 
 [autoload]
@@ -22,6 +24,7 @@ SaveManager="*res://scripts/autoload/save_manager.gd"
 InventoryManager="*res://scripts/autoload/inventory_manager.gd"
 QuestManager="*res://scripts/autoload/quest_manager.gd"
 DialogueManager="*res://scripts/autoload/dialogue_manager.gd"
+AudioManager="*res://scripts/autoload/audio_manager.gd"
 GameManager="*res://scripts/autoload/game_manager.gd"
 
 [display]

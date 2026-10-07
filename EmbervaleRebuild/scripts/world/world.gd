@@ -32,6 +32,9 @@ func _ready() -> void:
 		player.set_appearance(GameManager.character.appearance)
 	player.teleport(island.landmarks["dock"], 0.0)
 	camera_rig.snap()
+	player.footstep.connect(_on_footstep)
+	AudioManager.play_music("island_theme")
+	AudioManager.start_ambience()
 	var play_intro := loaded and GameManager.stage == "intro"
 	if play_intro:
 		set_gameplay_enabled(false)
@@ -56,6 +59,29 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if SettingsManager.settings_changed.is_connected(_on_setting):
 		SettingsManager.settings_changed.disconnect(_on_setting)
+
+
+func _on_footstep(_foot: int) -> void:
+	AudioManager.footstep(surface_at(player.global_position))
+
+
+## Footstep surface under a point.
+func surface_at(p: Vector3) -> String:
+	if IslandLayout.on_dock(Vector2(p.x, p.z)):
+		return "wood"
+	match island.terrain.tile_at(p.x, p.z):
+		IslandTerrain.Tile.PLAZA, IslandTerrain.Tile.COURTYARD:
+			return "stone"
+		IslandTerrain.Tile.SAND, IslandTerrain.Tile.PATH, IslandTerrain.Tile.MUD:
+			return "sand"
+	return "grass"
+
+
+func _process(_delta: float) -> void:
+	# Surf is louder near the shore, birdsong further inland.
+	var p := player.global_position
+	var inland := (IslandLayout.coast_radius(atan2(p.z, p.x)) - Vector2(p.x, p.z).length()) / 22.0
+	AudioManager.set_shore_mix(inland)
 
 
 func _on_setting(key: String, value: Variant) -> void:

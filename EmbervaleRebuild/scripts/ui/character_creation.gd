@@ -30,6 +30,7 @@ func _ready() -> void:
 	_build_ui()
 	_refresh_preview()
 	_validate()
+	AudioManager.play_music("menu_theme")
 
 
 func _build_stage() -> void:

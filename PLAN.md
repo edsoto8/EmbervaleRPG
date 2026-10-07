@@ -20,7 +20,7 @@ specifications. Verification results are recorded in
 ## Milestone 0: Rebuild foundation
 
 - [x] Create separate rebuild directory; preserve the reference project and screenshots
-- [ ] Pin Godot 4.7-stable and matching export templates; record engine version in rebuild README
+- [x] Pin Godot 4.7-stable and matching export templates; record engine version in rebuild README
 - [x] Use `EmbervaleRebuild` user-data name; isolate test/capture/perf paths before autoload startup
 - [x] Establish shared interfaces, input names, physics layers and suite registration for M1
 - [ ] Identify a reference Windows PC and record CPU/GPU/driver/OS for the provisional performance target
@@ -145,18 +145,18 @@ Specs: [tutorial](SPEC_GAME.md#tutorial-npc-dialogue-and-hud-m3),
 
 Spec: [polish and acceptance](SPEC_GAME.md#polish-and-acceptance-m4).
 
-- [ ] Animation: smooth turn-to-face (player and NPCs), talk gestures, a cheer on objective completion,
+- [x] Animation: smooth turn-to-face (player and NPCs), talk gestures, a cheer on objective completion,
       idle head glances, footstep events from the stride
-- [ ] Environment: clouds circling the island, gulls, chimney smoke, wood chips and tree shake on each
+- [x] Environment: clouds circling the island, gulls, chimney smoke, wood chips and tree shake on each
       axe strike
-- [ ] Performance: `MeshMerger` batches static props into vertex-coloured chunks; small decor fades out
+- [x] Performance: `MeshMerger` batches static props into vertex-coloured chunks; small decor fades out
       beyond 75 m; `tests/perf_report.tscn`
-- [ ] Procedurally synthesized audio (`Synth` + `AudioManager`): menu theme, surf louder near the shore,
+- [x] Procedurally synthesized audio (`Synth` + `AudioManager`): menu theme, surf louder near the shore,
       birdsong, footsteps, chop, pickup, UI click, dialogue, inventory, objective jingle, tutorial
       fanfare; SFX/Ambience/Music buses; slow recipes rendered on a worker thread
-- [ ] Graceful quit (`GameManager.quit_game`: save, stop audio, short real-time wait), also on window close
-- [ ] **No-teleport playthrough suite** from main menu to Tutorial Complete and back via Continue
-- [ ] Windows export preset; release export builds and runs
+- [x] Graceful quit (`GameManager.quit_game`: save, stop audio, short real-time wait), also on window close
+- [x] **No-teleport playthrough suite** from main menu to Tutorial Complete and back via Continue
+- [x] Windows export preset; release export builds and runs
 - [ ] Windows runtime smoke test on a real Windows PC
 
 ## Milestone 5: Graphics upgrade

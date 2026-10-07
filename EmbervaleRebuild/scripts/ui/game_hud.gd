@@ -247,6 +247,7 @@ func _check_line(text: String, done: bool, size: int) -> HBoxContainer:
 
 func toggle_inventory() -> void:
 	inventory_panel.toggle()
+	AudioManager.play("inventory", -6.0)
 
 
 func _on_dialogue(active: bool) -> void:

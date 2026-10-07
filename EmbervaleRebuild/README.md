@@ -37,6 +37,13 @@ godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_vie
 godot --path . --rendering-driver opengl3 res://tests/perf_report.tscn [-- <report.txt>]           # draw calls + generation
 ```
 
+godot --headless --path . --export-release "Windows Desktop" build/windows/Embervale.exe            # needs 4.7-stable export templates
+```
+
+```bash
+godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- playthrough  # no-teleport tutorial run + pacing report
+```
+
 On Linux without a display, prefix the rendering commands with `xvfb-run -a -s "-screen 0 1280x720x24"`.
 
 Test, capture and perf scenes (anything under `res://tests/`) and runs given the `--isolated` user

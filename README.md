@@ -11,10 +11,11 @@ network access is needed.
 
 ## Status
 
-**Rebuild not started.** This directory contains the previous implementation, tests and screenshots
-for reference. The checklist tracks the new version, not the state of those historical files. Build the
-new version in a separate project directory and preserve this reference copy. The milestones are in
-[PLAN.md](PLAN.md), and each one has to end in a runnable game with passing tests before the next begins.
+**Rebuild in progress** in [`EmbervaleRebuild/`](EmbervaleRebuild/) (Godot 4.7-stable). This repository
+holds the specifications; the reference implementation they mention is not included, so the rebuild
+was written from the specs. The checklist in [PLAN.md](PLAN.md) tracks the rebuild, and
+[`EmbervaleRebuild/VERIFICATION.md`](EmbervaleRebuild/VERIFICATION.md) records what was verified and
+what still needs a person (native Windows runs, real-GPU performance, listening to audio).
 
 | Document | What it's for |
 |---|---|
@@ -87,21 +88,21 @@ requirements, and [CLAUDE.md](CLAUDE.md) records implementation guidance.
 
 ## Running the game
 
-These commands run the reference project while the rebuild is unstarted. Use the new directory path
-when it exists; the rebuild uses application/user-data name `EmbervaleRebuild`.
+The rebuild lives in `EmbervaleRebuild/` and uses application/user-data name `EmbervaleRebuild`.
 
 1. Install [Godot 4.7-stable](https://godotengine.org/download/archive/4.7-stable/) (the standard build, not .NET).
-2. In the Godot Project Manager, choose **Import** and select `EmbervaleRPG/project.godot`.
+2. In the Godot Project Manager, choose **Import** and select `EmbervaleRebuild/project.godot`.
 3. Press **F5** (Run Project).
 
-From a terminal: `godot --path EmbervaleRPG`.
+From a terminal: `godot --path EmbervaleRebuild`.
 
-The reference game saves and settings go to `user://savegame.json` and `user://settings.json`:
-`%APPDATA%\Godot\app_userdata\Embervale\` on Windows, `~/.local/share/godot/app_userdata/Embervale/` on
-Linux and `~/Library/Application Support/Godot/app_userdata/Embervale/` on macOS.
+Saves and settings go to `user://savegame.json` and `user://settings.json`:
+`%APPDATA%\EmbervaleRebuild\` on Windows, `~/.local/share/EmbervaleRebuild/` on Linux and
+`~/Library/Application Support/EmbervaleRebuild/` on macOS (custom user directory). The reference
+game's `Embervale` data is never touched.
 
 **Windows build:** install the export templates once (*Editor → Manage Export Templates*), then run
-`godot --headless --path EmbervaleRPG --export-release "Windows Desktop" build/windows/Embervale.exe`.
+`godot --headless --path EmbervaleRebuild --export-release "Windows Desktop" build/windows/Embervale.exe`.
 `build/` is gitignored.
 
 ## Automated checks
@@ -140,7 +141,7 @@ Plan for a person to check these at the end of each milestone:
 ## Project layout (target)
 
 ```
-EmbervaleRPG/
+EmbervaleRebuild/
 ├── project.godot      # input map, autoloads, physics layer names, renderer settings
 ├── scenes/            # ui/ (main menu, character creation), world/ (island, environment), player/, camera/
 ├── scripts/

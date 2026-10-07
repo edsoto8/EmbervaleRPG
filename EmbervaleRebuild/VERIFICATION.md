@@ -55,3 +55,27 @@ counts and generation times are. Native Windows and real-hardware checks are lis
 - Screenshots inspected: tutorial HUD, dialogue with live portrait, inventory, gate pan, Tutorial
   Complete.
 - Not verified here: completing the tutorial by hand on real hardware.
+
+## Milestone 4 — Polish
+
+- Import/parse: clean (all scripts compile).
+- All suites (`world`, `flow`, `tutorial`, `polish`, `playthrough`) pass. `polish` covers batching
+  (no loose static shared-material meshes; boat, dummies and choppable trees kept separate), 75 m
+  decor fade, clouds/gulls/chimney smoke moving, two axe strikes per chop (shake, chips, chop sound),
+  audio triggers (menu/island music, ambience, UI click, wooden footsteps, inventory, jingle, pickup,
+  dialogue, fanfare), surf quieter inland, numeric checks of every synthesised sound (no clipping,
+  audible RMS, seamless loops), deterministic worker renders, turn-to-face, talk gesture, cheer,
+  idle glances, stride footsteps, and Save & Exit stopping audio before a real-time wait.
+- No-teleport playthrough: main menu -> typed name -> full intro -> five objectives by clicks and
+  keys -> gate sequence -> Tutorial Complete -> Return to Main Menu -> Continue (completed tutorial,
+  one sword, position restored). Zero frame-to-frame jumps. Diagnostic pacing (accelerated,
+  dialogue advanced instantly): movement 46 s, dialogue 1 s, action 6 s, idle 0.3 s, cutscenes 22 s.
+  Human pacing (target 5-10 min) is not measured here.
+- Perf report (`docs/perf_m4.txt`, llvmpipe, HUD included): generation cold 795 ms, warm median
+  560 ms; worst view 106 draw calls (limit 450, target 260).
+- Windows release export (`--export-release "Windows Desktop"`) builds `Embervale.exe` + `.pck`
+  with the 4.7-stable templates; the exported pack runs cleanly on Linux headless and rendered.
+  **Not done:** running the `.exe` on a real Windows PC, frame rate on real GPUs, listening to the
+  audio by ear, live motion review.
+- M4 captures retained for M5 comparison: `docs/screenshots/m4/` (same cameras as
+  `tests/capture_views.tscn`).

@@ -28,6 +28,8 @@ var marker: Node3D
 var objective_arrow: Node3D
 var gate_sequence: GateSequence
 var talking_to: Npc = null
+var chopping: ChoppableTree = null
+var chips: CPUParticles3D
 var _pending_completion := false
 var _time := 0.0
 var _connections: Array = []
@@ -42,6 +44,8 @@ func setup(w: World) -> void:
 	_build_arrow()
 	for tree in island.choppable_trees:
 		tree.chop_handler = _chop
+	_build_chips()
+	_link(player.model.action_impact, _on_impact)
 	_link(player.keyboard_moved, _on_keyboard_moved)
 	_link(player.nav.destination_reached, _on_destination_reached)
 	_link(QuestManager.objective_completed, _on_objective_completed)
@@ -204,6 +208,37 @@ func _on_objective_completed(_id: String) -> void:
 
 # --- chopping (normal trees; Milestone 6 adds skills) ----------------------------------------------
 
+func _build_chips() -> void:
+	chips = CPUParticles3D.new()
+	chips.name = "WoodChips"
+	chips.emitting = false
+	chips.one_shot = true
+	chips.amount = 12
+	chips.lifetime = 0.9
+	chips.explosiveness = 1.0
+	chips.direction = Vector3(0, 1, 0)
+	chips.spread = 70.0
+	chips.initial_velocity_min = 2.0
+	chips.initial_velocity_max = 3.5
+	chips.gravity = Vector3(0, -9.8, 0)
+	chips.mesh = PropFactory.box_mesh(Vector3(0.07, 0.03, 0.05))
+	chips.material_override = PropFactory.character_mat(Color("c9a774"))
+	chips.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	world.add_child(chips)
+
+
+## Every axe impact shakes the tree, sprays chips and sounds the chop (world event, forwarded).
+func _on_impact(action_name: String) -> void:
+	if action_name != "chop" or chopping == null or not is_instance_valid(chopping):
+		return
+	chopping.strike()
+	var to_player := (player.global_position - chopping.global_position)
+	to_player.y = 0
+	chips.global_position = chopping.global_position + to_player.normalized() * 0.35 + Vector3(0, 1.0, 0)
+	chips.restart()
+	AudioManager.play("chop", -3.0, randf_range(0.92, 1.08))
+
+
 func _chop(tree: ChoppableTree, p: PlayerController) -> void:
 	if tree.is_stump:
 		return
@@ -211,13 +246,15 @@ func _chop(tree: ChoppableTree, p: PlayerController) -> void:
 		GameManager.post_message("Your inventory is too full to hold any more logs.")
 		return
 	GameManager.post_message("You swing your axe at the tree.")
+	chopping = tree
 	var ok: bool = await p.perform_action("chop", SkillData.TREES.normal.seconds, tree.global_position)
+	if chopping == tree:
+		chopping = null
 	if not ok or tree.is_stump:
 		return
 	if not InventoryManager.add_item("logs"):
 		GameManager.post_message("Your inventory is too full to hold any more logs.")
 		return
-	tree.strike()
 	GameManager.post_message("You get some logs.")
 	tree.fell()
 

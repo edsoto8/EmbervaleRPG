@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Code-authored project icon: an ember over Driftwood Isle. -->
+  <rect x="4" y="4" width="120" height="120" rx="22" fill="#2b2118" stroke="#b8923f" stroke-width="4"/>
+  <ellipse cx="64" cy="96" rx="46" ry="14" fill="#2f6e9e"/>
+  <path d="M26 96 Q40 78 64 80 Q88 78 102 96 Z" fill="#6e9e45"/>
+  <path d="M30 96 Q44 86 64 88 Q84 86 98 96 Z" fill="#e2cf98"/>
+  <path d="M64 18 C84 40 90 54 82 68 C78 76 70 80 64 80 C58 80 50 76 46 68 C38 54 46 40 64 18 Z" fill="#e0753a"/>
+  <path d="M64 38 C74 52 76 60 72 68 C70 72 67 74 64 74 C61 74 58 72 56 68 C52 60 54 52 64 38 Z" fill="#ffd36a"/>
+</svg>

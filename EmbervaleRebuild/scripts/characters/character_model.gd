@@ -6,6 +6,8 @@ extends Node3D
 
 signal footstep(foot: int)
 signal action_finished(action_name: String)
+## The moment a swing lands (axe on wood, sword on dummy).
+signal action_impact(action_name: String)
 
 const WALK_SPEED := 3.4
 const RUN_SPEED := 6.2
@@ -43,6 +45,8 @@ var _head_yaw := 0.0
 var _target_yaw := 0.0
 var _turning := false
 var _time := 0.0
+var _last_cycle := 0.0
+var _rng := RandomNumberGenerator.new()
 
 
 func _init(look: Dictionary = {}) -> void:
@@ -51,6 +55,7 @@ func _init(look: Dictionary = {}) -> void:
 
 
 func _ready() -> void:
+	_rng.seed = get_instance_id()
 	build(appearance)
 
 
@@ -249,6 +254,7 @@ func is_turning() -> bool:
 func play_action(action_name: String, duration: float = 0.0) -> void:
 	current_action = action_name
 	_action_time = 0.0
+	_last_cycle = 0.0
 	_action_duration = duration
 	match action_name:
 		"chop":
@@ -317,8 +323,12 @@ func _animate(delta: float) -> void:
 	if idle_glances and _blend < 0.1 and current_action == "":
 		_glance_timer -= delta
 		if _glance_timer <= 0.0:
-			_glance_timer = randf_range(2.5, 5.5)
-			_glance_target = randf_range(-0.6, 0.6) if randf() < 0.7 else 0.0
+			# Alternate between a glance to one side and looking ahead again.
+			_glance_timer = _rng.randf_range(2.0, 4.5)
+			if absf(_glance_target) > 0.01:
+				_glance_target = 0.0
+			else:
+				_glance_target = _rng.randf_range(0.25, 0.6) * (1.0 if _rng.randf() < 0.5 else -1.0)
 	else:
 		_glance_target = 0.0
 	_head_yaw = lerpf(_head_yaw, _glance_target, minf(4.0 * delta, 1.0))
@@ -327,17 +337,25 @@ func _animate(delta: float) -> void:
 		_animate_action()
 
 
+func _impact_at(cycle: float, at: float) -> void:
+	if _last_cycle < at and cycle >= at:
+		action_impact.emit(current_action)
+	_last_cycle = cycle
+
+
 func _animate_action() -> void:
 	var t := _action_time
 	match current_action:
 		"chop":
 			var cyc := fmod(t, 1.0)
+			_impact_at(cyc, 0.62)
 			var raise := sin(cyc * TAU * 0.5)
 			arm_r.rotation = Vector3(-2.4 + 1.9 * (1.0 - raise) if cyc > 0.55 else -0.6 - 1.8 * smoothstep(0.0, 0.55, cyc), 0, 0.15)
 			arm_l.rotation = Vector3(arm_r.rotation.x * 0.8, 0, -0.25)
 			torso.rotation.y = -0.2
 		"attack":
 			var cyc := fmod(t, 1.2) / 1.2
+			_impact_at(cyc, 0.55)
 			arm_r.rotation = Vector3(-2.2 + 2.6 * smoothstep(0.45, 0.65, cyc) if cyc > 0.45 else -0.4 - 1.8 * smoothstep(0.0, 0.45, cyc), 0, 0.2)
 			arm_l.rotation = Vector3(-0.4, 0, -0.2)
 			torso.rotation.y = -0.25 + 0.4 * smoothstep(0.45, 0.65, cyc)
