@@ -104,7 +104,7 @@ counts and generation times are. Native Windows and real-hardware checks are lis
 ## Milestone 6 — Skills and progression
 
 - Import/parse: clean (72 scripts compile).
-- All ten suites pass: 107 tests (`world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`,
+- All suites pass: 111 tests after the review fixes below (`world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`,
   `playthrough`, `skills_playthrough`). `skills` covers the XP table (83 / 388 / 1,154 / 13,034,431),
   the cap, single notification for multi-level gains, every S10 formula, normal/oak/willow chopping
   with requirements, continuous loops, depletion after the log, the steel axe, Tobin's gear (and the
@@ -128,3 +128,12 @@ counts and generation times are. Native Windows and real-hardware checks are lis
 - **Not done (needs a person or hardware):** completing all ten tasks by hand and recording human
   pacing, a native Windows release smoke test, frame rates on the provisional i5-8250U/UHD 620
   laptop, listening to the audio, and live motion review.
+
+## Final review
+
+An independent code review against the specs found six issues, all fixed with regression tests
+where practical: several pending task rewards could be paid more than once when a slot freed up;
+Drop could discard a stack that changed while the confirmation was open; writing a new save over a
+corrupt primary destroyed it (it is now preserved); lighting and fishing now recheck the tinderbox
+and rod at completion; pending rewards that fit and logs already held are credited on load; a
+pending interaction that gets stuck now says "You can't reach that."

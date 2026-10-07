@@ -186,6 +186,8 @@ func steer(pos: Vector3, speed: float, delta: float) -> Vector3:
 	else:
 		_stuck += delta
 		if _stuck > STUCK_TIMEOUT:
+			if _on_arrive.is_valid():
+				GameManager.post_message("You can't reach that.")
 			cancel("stuck")
 			return Vector3.ZERO
 	var dir := Vector3(wp.x - pos.x, 0, wp.z - pos.z).normalized()

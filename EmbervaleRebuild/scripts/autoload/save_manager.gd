@@ -90,9 +90,7 @@ func recover_from_backup() -> Dictionary:
 	if backup.status != "valid":
 		return {"ok": false, "error": "The backup save is not usable."}
 	if FileAccess.file_exists(save_path()):
-		var stamp := Time.get_datetime_string_from_system(true).replace(":", "-")
-		var keep := save_path().get_basename() + ".corrupt-%s.json" % stamp
-		if DirAccess.rename_absolute(save_path(), keep) != OK:
+		if not _preserve_corrupt():
 			return {"ok": false, "error": "The damaged save could not be moved aside."}
 	if DirAccess.copy_absolute(backup_path(), save_path()) != OK:
 		return {"ok": false, "error": "The backup could not be restored."}
@@ -100,6 +98,17 @@ func recover_from_backup() -> Dictionary:
 
 
 # --- writing ------------------------------------------------------------------------------------
+
+## Moves the primary save aside as savegame.corrupt-<time>.json. Returns false if it can't.
+func _preserve_corrupt() -> bool:
+	var stamp := Time.get_datetime_string_from_system(true).replace(":", "-")
+	var keep := save_path().get_basename() + ".corrupt-%s.json" % stamp
+	var n := 1
+	while FileAccess.file_exists(keep):
+		keep = save_path().get_basename() + ".corrupt-%s-%d.json" % [stamp, n]
+		n += 1
+	return DirAccess.rename_absolute(save_path(), keep) == OK
+
 
 ## Atomically writes a snapshot. Returns true on success; on failure the previous save is untouched,
 ## `last_error` explains why and save_failed is emitted.
@@ -129,6 +138,9 @@ func write_save(data: Dictionary) -> bool:
 	if _consume_failure("replace"):
 		DirAccess.remove_absolute(temp_path())
 		return _fail("The game could not be saved (could not replace the save file).")
+	# Never overwrite a damaged primary: keep it for inspection.
+	if file_status(save_path()).status == "corrupt":
+		_preserve_corrupt()
 	var err := DirAccess.rename_absolute(temp_path(), save_path())
 	if err != OK and FileAccess.file_exists(save_path()) and file_status(backup_path()).status == "valid":
 		# Some platforms refuse to rename over an existing file; the backup now holds the old save.

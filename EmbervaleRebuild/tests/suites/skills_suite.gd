@@ -488,6 +488,36 @@ func test_tasks_tracker_pending_rewards_and_finale() -> void:
 	check_eq(InventoryManager.count("coins"), coins, "no rewards paid twice on Continue")
 
 
+func test_several_pending_rewards_paid_once_each() -> void:
+	var slots := _done_slots()
+	for i in 27:
+		slots.append({"id": "tinderbox", "qty": 1})
+	var w := await start_adventure(DONE, slots)
+	for t in ["catch_shrimp", "light_fire", "cook_fish"]:
+		QuestManager.report_task(t)
+	check_eq(QuestManager.pending_task_rewards.size(), 3, "three rewards pending")
+	InventoryManager.drop_slot(5)
+	check_eq(InventoryManager.count("coins"), 30, "each pending reward paid exactly once")
+	check(QuestManager.pending_task_rewards.is_empty(), "nothing left pending")
+	check(w != null, "world")
+
+
+func test_pending_rewards_paid_on_continue() -> void:
+	var w := await start_adventure({"index": 5, "tasks": ["light_fire"], "pending_task_rewards": ["light_fire"]}, _done_slots())
+	check_eq(InventoryManager.count("coins"), 10, "a pending reward that fits is paid when the save loads")
+	check(QuestManager.pending_task_rewards.is_empty() and w != null, "and cleared")
+
+
+func test_drop_only_what_was_confirmed() -> void:
+	var w := await start_adventure(DONE, _done_slots([{"id": "logs", "qty": 3}]))
+	w.hud.inventory_panel.show_panel()
+	w.hud.inventory_panel.select_slot(1)
+	w.hud.inventory_panel._confirm_drop(1)
+	InventoryManager.add_item("logs", 2)
+	(top_modal() as ConfirmPanel).press("Drop")
+	check_eq(InventoryManager.count("logs"), 5, "the stack changed during the confirm: nothing dropped")
+
+
 func test_tasks_count_during_tutorial() -> void:
 	var w := await start_adventure({"index": 2}, [{"id": "raw_shrimp", "qty": 1}])
 	QuestManager.report_task("catch_shrimp")

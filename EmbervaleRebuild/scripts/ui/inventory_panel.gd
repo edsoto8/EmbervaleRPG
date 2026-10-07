@@ -146,10 +146,19 @@ func _confirm_drop(i: int) -> void:
 		return
 	var what := ItemDB.display_name(s.id)
 	var text := "Drop %s%s? It will be gone for good." % ["all %d " % s.qty if s.qty > 1 else "your ", what]
-	ConfirmPanel.ask(text, [["Drop", func() -> void: _drop(i)], ["Keep", Callable()]], "Drop item")
+	var id: String = s.id
+	var qty: int = s.qty
+	ConfirmPanel.ask(text, [["Drop", func() -> void: _drop(i, id, qty)], ["Keep", Callable()]], "Drop item")
 
 
-func _drop(i: int) -> void:
+## Drops only what was confirmed: if the slot changed meanwhile (an action finished), nothing goes.
+func _drop(i: int, id: String, qty: int) -> void:
+	var s: Variant = InventoryManager.slot(i)
+	if s == null or s.id != id or s.qty != qty:
+		GameManager.post_message("That item changed before you dropped it; nothing was dropped.")
+		_clear_selection()
+		refresh()
+		return
 	var res := InventoryManager.drop_slot(i)
 	if res.ok:
 		GameManager.post_message("You drop %s%s." % ["%d × " % res.qty if res.qty > 1 else "the ", ItemDB.display_name(res.id)])

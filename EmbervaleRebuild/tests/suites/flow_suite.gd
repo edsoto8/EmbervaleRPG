@@ -459,6 +459,16 @@ func test_corrupt_primary_recovers_from_backup() -> void:
 	check(corrupt_kept, "corrupt file preserved for inspection")
 
 
+func test_new_save_keeps_corrupt_primary() -> void:
+	SaveManager.write_save(GameManager.new_game_data("Older", Appearance.defaults()))
+	var f := FileAccess.open(AppPaths.save_path(), FileAccess.WRITE)
+	f.store_string("{broken")
+	f.close()
+	check(SaveManager.write_save(GameManager.new_game_data("Newer", Appearance.defaults())), "new save written")
+	var kept := Array(DirAccess.get_files_at(AppPaths.root())).filter(func(n: String) -> bool: return n.contains("corrupt"))
+	check_eq(kept.size(), 1, "the damaged primary is preserved, not overwritten")
+
+
 func test_no_valid_file_disables_continue() -> void:
 	var f := FileAccess.open(AppPaths.save_path(), FileAccess.WRITE)
 	f.store_string("garbage")

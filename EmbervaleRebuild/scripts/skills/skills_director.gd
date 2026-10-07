@@ -46,8 +46,10 @@ func setup(w: World) -> void:
 	_link(SkillsManager.level_up, _on_level_up)
 	w.director.tobin_context_provider = tobin_context
 	w.hud.inventory_panel.action_provider = item_actions
-	# Level tasks follow current XP when a save (or an import) loads.
+	# Level tasks follow current XP when a save (or an import) loads; pending rewards that now fit
+	# are paid and logs already held count.
 	QuestManager.check_level_tasks()
+	QuestManager.catch_up()
 
 
 func _link(sig: Signal, cb: Callable) -> void:
@@ -120,6 +122,9 @@ func fish(spot: FishingSpot, p: PlayerController) -> void:
 		return
 	_msg("You cast out your line.")
 	while true:
+		if not has_rod():
+			_msg("You need a fishing rod to keep fishing.")
+			return
 		var lvl := SkillsManager.level("fishing")
 		var outputs := ["raw_shrimp"]
 		if lvl >= SkillData.FISH.raw_trout.level:
@@ -129,7 +134,7 @@ func fish(spot: FishingSpot, p: PlayerController) -> void:
 				_msg("Your inventory is too full to hold any more fish.")
 				return
 		var ok: bool = await p.perform_action("fish", SkillData.FISH_CAST_SECONDS, spot.global_position)
-		if not ok:
+		if not ok or not has_rod():
 			return
 		AudioManager.play("splash", -8.0)
 		if not SkillsManager.chance(SkillData.catch_chance(lvl, InventoryManager.has("oak_fishing_rod"))):
@@ -212,6 +217,9 @@ func light(log_id: String) -> void:
 			return
 		if not InventoryManager.has(log_id):
 			_msg("You have no logs left to light.")
+			return
+		if not InventoryManager.has("tinderbox"):
+			_msg("You need a tinderbox to light a fire.")
 			return
 		if not SkillsManager.chance(SkillData.light_chance(SkillsManager.level("firemaking"), req)):
 			_msg("You fail to light a fire.")

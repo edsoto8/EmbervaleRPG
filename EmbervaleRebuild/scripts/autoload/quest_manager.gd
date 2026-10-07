@@ -37,6 +37,7 @@ var pending_task_rewards: Array[String] = []
 var inventory_open := false
 
 var _loading := false
+var _retrying := false
 
 
 func _ready() -> void:
@@ -265,8 +266,19 @@ func check_level_tasks() -> void:
 
 ## Pays any pending task rewards that now fit (called whenever the inventory changes).
 func retry_pending_rewards() -> void:
-	if pending_task_rewards.is_empty() or _loading:
+	if pending_task_rewards.is_empty() or _loading or _retrying:
 		return
+	# Paying adds coins, which re-enters this through inventory_changed; guard against that and
+	# skip rewards already paid meanwhile, so each is paid exactly once.
+	_retrying = true
 	for id in pending_task_rewards.duplicate():
-		if InventoryManager.can_add("coins", TaskData.reward(id)):
+		if id in pending_task_rewards and InventoryManager.can_add("coins", TaskData.reward(id)):
 			_pay(id)
+	_retrying = false
+
+
+## After a load: pay rewards that now fit and count logs already held (no events replay).
+func catch_up() -> void:
+	retry_pending_rewards()
+	if current_id() == "collect_logs" and InventoryManager.count("logs") >= LOGS_GOAL:
+		_complete()
