@@ -153,3 +153,33 @@ pending interaction that gets stuck now says "You can't reach that."
   the M6 run even on untouched stages. Generation was trimmed (path bounding-box rejects, deep-sea
   texels skipped in the depth bake) to keep margin.
 - Screenshots: `docs/screenshots/flow/` (whole flow) and `docs/screenshots/revamp/` (fixed views).
+
+## Milestone 7 — Mining, Smithing and the first quest
+
+- Spec: [SPEC_SMITHING.md](../SPEC_SMITHING.md). Import/parse clean (82 scripts compile).
+- All suites pass: 132 tests (`world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`, `playthrough`,
+  `skills_playthrough`, `smithing`, `quest_playthrough`). `smithing` (18 tests) covers the formulas
+  and recipe data, pickaxe and level requirements, one ore per swing with rubble and 8 s / 15 s
+  respawns, cancellation without grants, a full pack, the steel pickaxe, the furnace panel
+  (disabled recipes with reasons), bronze smelting loops, iron failures that consume ore, smithing
+  with Make 1 / Make all, the hammer requirement, freed-slot capacity, Brann before and after the
+  tutorial, declining and accepting, all-or-nothing tool hand-out with retry and replacement,
+  the hand-in transaction (coins, XP, stage and save in one snapshot), no replay after Continue,
+  coin overflow refusing the hand-in, the shop additions, `quest.quests` validation (unknown ids,
+  clamped stages, unknown/duplicate flags, malformed lists, missing key) and the seven-skill panel.
+- No-teleport quest playthrough from a saved, completed tutorial through the menu's Continue:
+  Brann -> quarry (copper, tin) -> furnace -> anvil -> Brann, by clicks and keys only, zero jumps;
+  diagnostic pacing (accelerated) movement 42 s, actions 9 s.
+- World suite: new `test_resource_nodes_reachable` checks every tree and mining rock can be worked
+  from the navmesh. It exposed a pre-existing bug: the shoreline boundary search started at 30 m and
+  stopped in the pond, so boundary walls ran from the pond to the coast and sealed off the land
+  north-east of it (two willows there were unreachable once the layout shifted). The search now
+  marches past the pond.
+- Perf report (`docs/perf_m7.txt`): warm generation 1102 ms (cold 1487 ms); worst view 234 draw
+  calls (High, smithy), every preset under the 260 target and 450 limit. Villagers now cast shadows
+  from torso and legs only (head and arms cost three shadow-pass calls each per split), which took
+  the smithy view from 264 to 234.
+- Screenshots: `docs/screenshots/m7/` (fixed views, including `smithy` and `quarry`) and
+  `docs/screenshots/flow/19_brann.png` to `22_smithing.png`.
+- **Not done (needs a person or hardware):** completing the quest by hand and recording human
+  pacing, listening to the new mine/anvil sounds, live motion review and a native Windows smoke test.

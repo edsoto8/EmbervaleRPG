@@ -202,12 +202,12 @@ Spec: [SPEC_SKILLS.md](SPEC_SKILLS.md).
 
 Spec: [SPEC_SMITHING.md](SPEC_SMITHING.md).
 
-- [ ] K1 Mining and Smithing skills in `SkillData`/`SkillsManager`; Skills panel fits seven skills
-- [ ] K2 Quarry with copper, tin and iron rocks: pickaxe and level checks, one ore per swing, depletion and respawn
-- [ ] K3 Smithy (furnace, anvil, Brann) east of the plaza; crafting panel; smelting with iron failures; smithing recipes
-- [ ] K4 "The Smith's Apprentice": stages, checklist flags, tool hand-out and recovery, hand-in transaction, banner and fanfare
-- [ ] K5 New items and icons; Marla sells the steel pickaxe and hammer and buys the new goods
-- [ ] K6 Pickaxe/hammer animations with impacts, chips/sparks, furnace glow and smoke, sounds, minimap marks
-- [ ] K7 `quest.quests` save key with validation and defaults; checkpoints on quest events
-- [ ] Smithing suite + no-teleport quest playthrough; every earlier suite still passes
-- [ ] Perf: ≤ 260 draw calls in every view and preset, warm generation < 1.5 s
+- [x] K1 Mining and Smithing skills in `SkillData`/`SkillsManager`; Skills panel fits seven skills
+- [x] K2 Quarry with copper, tin and iron rocks: pickaxe and level checks, one ore per swing, depletion and respawn
+- [x] K3 Smithy (furnace, anvil, Brann) east of the plaza; crafting panel; smelting with iron failures; smithing recipes
+- [x] K4 "The Smith's Apprentice": stages, checklist flags, tool hand-out and recovery, hand-in transaction, banner and fanfare
+- [x] K5 New items and icons; Marla sells the steel pickaxe and hammer and buys the new goods
+- [x] K6 Pickaxe/hammer animations with impacts, chips/sparks, furnace glow and smoke, sounds, minimap marks
+- [x] K7 `quest.quests` save key with validation and defaults; checkpoints on quest events
+- [x] Smithing suite + no-teleport quest playthrough; every earlier suite still passes
+- [x] Perf: ≤ 260 draw calls in every view and preset, warm generation < 1.5 s
