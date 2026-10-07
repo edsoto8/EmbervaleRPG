@@ -6,8 +6,10 @@ game, and milestones are built one at a time.
 
 ## Specification and rebuild status
 
-All boxes refer to the **new rebuild**, currently unstarted. Existing code/tests/screenshots are reference
-materials. Preserve them and create the new project separately; do not infer completion from their presence.
+All boxes refer to the **new rebuild**, which lives in [`EmbervaleRebuild/`](EmbervaleRebuild/). This
+repository does not contain the reference implementation, so the rebuild was written from these
+specifications. Verification results are recorded in
+[`EmbervaleRebuild/VERIFICATION.md`](EmbervaleRebuild/VERIFICATION.md).
 
 - [SPEC_GAME.md](SPEC_GAME.md): authoritative M1–M4 behavior, inventory, performance and pacing.
 - [SPEC_SAVE.md](SPEC_SAVE.md): authoritative schema, import and recovery policy.
@@ -17,10 +19,10 @@ materials. Preserve them and create the new project separately; do not infer com
 
 ## Milestone 0: Rebuild foundation
 
-- [ ] Create separate rebuild directory; preserve the reference project and screenshots
+- [x] Create separate rebuild directory; preserve the reference project and screenshots
 - [ ] Pin Godot 4.7-stable and matching export templates; record engine version in rebuild README
-- [ ] Use `EmbervaleRebuild` user-data name; isolate test/capture/perf paths before autoload startup
-- [ ] Establish shared interfaces, input names, physics layers and suite registration for M1
+- [x] Use `EmbervaleRebuild` user-data name; isolate test/capture/perf paths before autoload startup
+- [x] Establish shared interfaces, input names, physics layers and suite registration for M1
 - [ ] Identify a reference Windows PC and record CPU/GPU/driver/OS for the provisional performance target
 
 ## Milestone verification gates
@@ -77,27 +79,27 @@ example, `ClickMarker` only listens to `NavigationController` signals, and `Tuto
 
 Spec: [SPEC_GAME.md](SPEC_GAME.md#world-and-navigation-m1).
 
-- [ ] Create the Godot 4.7 project (Compatibility renderer, input map, named physics layers)
-- [ ] Generate the tutorial island procedurally (deterministic seeds)
-  - [ ] Tile-coloured, flat-shaded heightfield terrain with beaches, paths, plaza and courtyard paving
-  - [ ] Arrival dock with a moored boat (player spawns here)
-  - [ ] Village: five cottages, well, market stalls, lamp posts, signpost, fenced garden
-  - [ ] Training courtyard: fence with west entrance, training dummies, weapon rack
-  - [ ] Forest clearing (open centre kept free for choppable trees), stumps, log pile
-  - [ ] Fishing pond with rocks and reeds
-  - [ ] Exit gate: gatehouse, stone walls, bridge towards a distant mainland
-  - [ ] Scattered trees, rocks, bushes, flowers, grass; sea and sky
-  - [ ] Invisible shoreline, pond and dock-rail boundaries
-  - [ ] Runtime navmesh bake + `navigation_ready` signal
-- [ ] Controllable character (procedural low-poly model, idle/walk/run blending)
-- [ ] WASD movement: camera-relative, diagonals normalised, smooth turning, Shift to run
-- [ ] Point-and-click movement with pathfinding around obstacles; keyboard cancels it immediately
-- [ ] Destination marker
-- [ ] Camera: smooth follow, wheel zoom (clamped), middle-drag/arrow orbit, no interruption of movement,
+- [x] Create the Godot 4.7 project (Compatibility renderer, input map, named physics layers)
+- [x] Generate the tutorial island procedurally (deterministic seeds)
+  - [x] Tile-coloured, flat-shaded heightfield terrain with beaches, paths, plaza and courtyard paving
+  - [x] Arrival dock with a moored boat (player spawns here)
+  - [x] Village: five cottages, well, market stalls, lamp posts, signpost, fenced garden
+  - [x] Training courtyard: fence with west entrance, training dummies, weapon rack
+  - [x] Forest clearing (open centre kept free for choppable trees), stumps, log pile
+  - [x] Fishing pond with rocks and reeds
+  - [x] Exit gate: gatehouse, stone walls, bridge towards a distant mainland
+  - [x] Scattered trees, rocks, bushes, flowers, grass; sea and sky
+  - [x] Invisible shoreline, pond and dock-rail boundaries
+  - [x] Runtime navmesh bake + `navigation_ready` signal
+- [x] Controllable character (procedural low-poly model, idle/walk/run blending)
+- [x] WASD movement: camera-relative, diagonals normalised, smooth turning, Shift to run
+- [x] Point-and-click movement with pathfinding around obstacles; keyboard cancels it immediately
+- [x] Destination marker
+- [x] Camera: smooth follow, wheel zoom (clamped), middle-drag/arrow orbit, no interruption of movement,
       pulls in to keep buildings from hiding the player
-- [ ] Headless gameplay tests + screenshot capture (test runner as a scene, so autoloads load)
-- [ ] README with launch/test instructions
-- [ ] Batch static props sufficiently to meet the shared performance contract; M4 extends batching/polish
+- [x] Headless gameplay tests + screenshot capture (test runner as a scene, so autoloads load)
+- [x] README with launch/test instructions
+- [x] Batch static props sufficiently to meet the shared performance contract; M4 extends batching/polish
 
 ## Milestone 2: Introductory experience
 
