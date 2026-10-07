@@ -163,18 +163,18 @@ Spec: [polish and acceptance](SPEC_GAME.md#polish-and-acceptance-m4).
 
 Spec: [SPEC_GRAPHICS.md](SPEC_GRAPHICS.md).
 
-- [ ] G8 Graphics quality setting (Low / Medium / High), applied live, persisted, in the Settings panel
-- [ ] G1 Lighting and atmosphere: warm 38° key light, cool fill, softer shadows, sky/fog blend, bloom +
+- [x] G8 Graphics quality setting (Low / Medium / High), applied live, persisted, in the Settings panel
+- [x] G1 Lighting and atmosphere: warm 38° key light, cool fill, softer shadows, sky/fog blend, bloom +
       grading
-- [ ] G2 Water: signed depth texture baked from the terrain, turquoise shallows → deep blue, animated
+- [x] G2 Water: signed depth texture baked from the terrain, turquoise shallows → deep blue, animated
       shore foam, foam rings at dock/bridge posts, sparkle
-- [ ] G3 Wind: plant sway that survives batching, stems anchored at the root, gusts
-- [ ] G4 Terrain: slope + fake AO shading, softened transitions, wet-sand band
-- [ ] G5 Characters: hands, boots, collar, buckle, mouth, ears, eye highlights, fuller hair, rim light
-- [ ] G6 Ground cover: ferns, mushrooms, tall grass, flowers, lily pads, cattails, path border stones,
+- [x] G3 Wind: plant sway that survives batching, stems anchored at the root, gusts
+- [x] G4 Terrain: slope + fake AO shading, softened transitions, wet-sand band
+- [x] G5 Characters: hands, boots, collar, buckle, mouth, ears, eye highlights, fuller hair, rim light
+- [x] G6 Ground cover: ferns, mushrooms, tall grass, flowers, lily pads, cattails, path border stones,
       wood piles, a bucket
-- [ ] G7 Screen polish: vignette, MSAA by preset
-- [ ] Graphics test suite; perf budget met on every preset; before/after screenshots
+- [x] G7 Screen polish: vignette, MSAA by preset
+- [x] Graphics test suite; perf budget met on every preset; before/after screenshots
 
 ## Milestone 6: Skills and progression
 

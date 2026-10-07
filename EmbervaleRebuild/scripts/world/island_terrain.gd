@@ -209,10 +209,48 @@ func tile_color(i: int, j: int) -> Color:
 		Tile.MUD:
 			c = Color("7d8a48").lerp(Color("8f7d55"), 0.5 + n * 0.5)
 	c = c.lightened(jitter * 0.06) if jitter > 0.0 else c.darkened(-jitter * 0.06)
+	# Wet sand at the waterline.
+	if t == Tile.SAND and height_at(x, z) < 0.2:
+		c = c.lerp(Color("b89a62"), 0.55)
+	# Steeper tiles are slightly darker.
+	var tn := tile_normal(i, j)
+	c = c.darkened(clampf((1.0 - tn.y) * 3.0, 0.0, 0.22))
 	var ao := occlusion[j * SIZE + i]
 	if ao > 0.0:
 		c = c.darkened(ao * 0.3)
 	return c
+
+
+func tile_normal(i: int, j: int) -> Vector3:
+	var a := vertex_height(i, j)
+	var b := vertex_height(i + 1, j)
+	var c := vertex_height(i + 1, j + 1)
+	var d := vertex_height(i, j + 1)
+	return Vector3(((a + d) - (b + c)) * 0.5, 1.0, ((a + b) - (c + d)) * 0.5).normalized()
+
+
+## Tile colours with softened transitions: where neighbouring tiles differ in type, a tile blends
+## partway towards its neighbours, so borders soften while each tile keeps one flat colour.
+func soft_colors() -> PackedColorArray:
+	var base := PackedColorArray()
+	base.resize(SIZE * SIZE)
+	for j in SIZE:
+		for i in SIZE:
+			base[j * SIZE + i] = tile_color(i, j) if _tile_in_mesh(i, j) else Color.BLACK
+	var out := base.duplicate()
+	for j in range(1, SIZE - 1):
+		for i in range(1, SIZE - 1):
+			var idx := j * SIZE + i
+			var t := tiles[idx]
+			var sum := Color(0, 0, 0, 0)
+			var differs := false
+			for o in [-1, 1, -SIZE, SIZE]:
+				sum += base[idx + o]
+				if tiles[idx + o] != t:
+					differs = true
+			if differs and t != Tile.SEA:
+				out[idx] = base[idx].lerp(sum / 4.0, 0.3)
+	return out
 
 
 static func _hash01(i: int, j: int) -> float:
@@ -241,6 +279,7 @@ func build_mesh() -> ArrayMesh:
 	verts.resize(count * 6)
 	colors.resize(count * 6)
 	normals.resize(count * 6)
+	var soft := soft_colors()
 	var k := 0
 	for j in SIZE:
 		for i in SIZE:
@@ -252,7 +291,7 @@ func build_mesh() -> ArrayMesh:
 			var b := Vector3(x0 + 1, vertex_height(i + 1, j), z0)
 			var c := Vector3(x0 + 1, vertex_height(i + 1, j + 1), z0 + 1)
 			var d := Vector3(x0, vertex_height(i, j + 1), z0 + 1)
-			var col := tile_color(i, j)
+			var col := soft[j * SIZE + i]
 			var n1 := (c - a).cross(b - a).normalized()
 			var n2 := (d - a).cross(c - a).normalized()
 			verts[k] = a; verts[k + 1] = b; verts[k + 2] = c

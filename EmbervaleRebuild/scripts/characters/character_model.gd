@@ -94,6 +94,7 @@ func build(look: Dictionary) -> void:
 	for sx in [-0.075, 0.075]:
 		_mesh(head, PropFactory.box_mesh(Vector3(0.06, 0.06, 0.02)), Color("f4f1ea"), Vector3(sx, 0.19, -0.151))
 		_mesh(head, PropFactory.box_mesh(Vector3(0.035, 0.045, 0.02)), Color("2a2420"), Vector3(sx, 0.185, -0.158))
+		_mesh(head, PropFactory.box_mesh(Vector3(0.012, 0.012, 0.01)), Color("ffffff"), Vector3(sx + 0.008, 0.197, -0.169))
 		_mesh(head, PropFactory.box_mesh(Vector3(0.08, 0.02, 0.02)), hair.darkened(0.2), Vector3(sx, 0.245, -0.155))
 		_mesh(head, PropFactory.box_mesh(Vector3(0.03, 0.07, 0.06)), skin.darkened(0.05), Vector3(sx * 2.1, 0.16, 0))
 	_mesh(head, PropFactory.box_mesh(Vector3(0.05, 0.07, 0.05)), skin.darkened(0.08), Vector3(0, 0.14, -0.165))
@@ -107,6 +108,8 @@ func build(look: Dictionary) -> void:
 		_mesh(arm, PropFactory.box_mesh(Vector3(0.14 * bw, 0.32, 0.15)), shirt, Vector3(0, -0.14, 0))
 		_mesh(arm, PropFactory.box_mesh(Vector3(0.11, 0.28, 0.12)), skin, Vector3(0, -0.43, 0))
 		_mesh(arm, PropFactory.box_mesh(Vector3(0.12, 0.11, 0.13)), skin.darkened(0.06), Vector3(0, -0.62, 0))
+		_mesh(arm, PropFactory.box_mesh(Vector3(0.04, 0.07, 0.04)), skin.darkened(0.1), Vector3(0, -0.6, -0.08))
+		_mesh(arm, PropFactory.box_mesh(Vector3(0.15 * bw, 0.05, 0.16)), shirt.darkened(0.12), Vector3(0, -0.29, 0))
 	hand_r = _pivot(arm_r, "HandR", Vector3(0, -0.62, 0))
 
 	leg_l = _pivot(hips, "LegL", Vector3(-0.12 * bw, 0.0, 0))
@@ -115,6 +118,8 @@ func build(look: Dictionary) -> void:
 		_mesh(leg, PropFactory.box_mesh(Vector3(0.17 * bw, 0.78, 0.2)), pants, Vector3(0, -0.4, 0))
 		_mesh(leg, PropFactory.box_mesh(Vector3(0.19 * bw, 0.14, 0.3)), boot, Vector3(0, -0.84, -0.04))
 		_mesh(leg, PropFactory.box_mesh(Vector3(0.2 * bw, 0.03, 0.31)), Color("1f1712"), Vector3(0, -0.905, -0.04))
+		_mesh(leg, PropFactory.box_mesh(Vector3(0.2 * bw, 0.05, 0.22)), boot.lightened(0.12), Vector3(0, -0.76, 0))
+		_mesh(leg, PropFactory.box_mesh(Vector3(0.18 * bw, 0.06, 0.06)), boot.darkened(0.15), Vector3(0, -0.86, -0.18))
 
 	for part in [torso, head, arm_l, arm_r, leg_l, leg_r]:
 		_merge_part(part)
@@ -136,22 +141,33 @@ func _mesh(parent: Node3D, mesh: Mesh, color: Color, pos: Vector3, rot: Vector3 
 
 
 func _build_hair(h: Node3D, style: int, c: Color) -> void:
+	var shade := c.darkened(0.12)
 	match style:
 		1:
-			_mesh(h, PropFactory.box_mesh(Vector3(0.33, 0.1, 0.33)), c, Vector3(0, 0.33, 0.0))
-			_mesh(h, PropFactory.box_mesh(Vector3(0.33, 0.2, 0.08)), c, Vector3(0, 0.23, 0.13))
-			_mesh(h, PropFactory.box_mesh(Vector3(0.3, 0.05, 0.05)), c, Vector3(0, 0.3, -0.15))
-		2:
-			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.11, 0.34)), c, Vector3(0, 0.33, 0.0))
-			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.48, 0.1)), c, Vector3(0, 0.1, 0.14))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.11, 0.34)), c, Vector3(0, 0.335, 0.0))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.2, 0.09)), c, Vector3(0, 0.23, 0.13))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.3, 0.06, 0.06)), c, Vector3(0, 0.3, -0.15))
 			for sx in [-0.16, 0.16]:
-				_mesh(h, PropFactory.box_mesh(Vector3(0.04, 0.34, 0.24)), c, Vector3(sx, 0.16, 0.04))
+				_mesh(h, PropFactory.box_mesh(Vector3(0.04, 0.12, 0.2)), shade, Vector3(sx, 0.26, 0.04))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.2, 0.05, 0.2)), shade, Vector3(0.03, 0.4, 0.02))
+		2:
+			_mesh(h, PropFactory.box_mesh(Vector3(0.35, 0.12, 0.35)), c, Vector3(0, 0.335, 0.0))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.36, 0.5, 0.11)), c, Vector3(0, 0.1, 0.145))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.3, 0.2, 0.06)), shade, Vector3(0, -0.14, 0.17))
+			for sx in [-0.165, 0.165]:
+				_mesh(h, PropFactory.box_mesh(Vector3(0.05, 0.36, 0.26)), c, Vector3(sx, 0.16, 0.04))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.3, 0.06, 0.06)), shade, Vector3(0, 0.3, -0.155))
 		3:
-			_mesh(h, PropFactory.box_mesh(Vector3(0.33, 0.1, 0.33)), c, Vector3(0, 0.33, 0.0))
-			_mesh(h, PropFactory.box_mesh(Vector3(0.33, 0.18, 0.08)), c, Vector3(0, 0.24, 0.13))
-			_mesh(h, PropFactory.box_mesh(Vector3(0.09, 0.32, 0.09)), c, Vector3(0, 0.1, 0.22), Vector3(0.35, 0, 0))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.11, 0.34)), c, Vector3(0, 0.335, 0.0))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.34, 0.18, 0.09)), c, Vector3(0, 0.24, 0.13))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.06, 0.06, 0.06)), shade, Vector3(0, 0.26, 0.19))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.1, 0.34, 0.1)), c, Vector3(0, 0.08, 0.23), Vector3(0.35, 0, 0))
+			for sx in [-0.16, 0.16]:
+				_mesh(h, PropFactory.box_mesh(Vector3(0.04, 0.12, 0.18)), shade, Vector3(sx, 0.27, 0.05))
 		4:
-			_mesh(h, PropFactory.box_mesh(Vector3(0.08, 0.14, 0.34)), c, Vector3(0, 0.37, 0.0))
+			_mesh(h, PropFactory.box_mesh(Vector3(0.09, 0.16, 0.34)), c, Vector3(0, 0.38, 0.0))
+			for k in 3:
+				_mesh(h, PropFactory.box_mesh(Vector3(0.07, 0.08, 0.08)), shade, Vector3(0, 0.48, -0.1 + k * 0.1))
 
 
 func _merge_part(part: Node3D) -> void:

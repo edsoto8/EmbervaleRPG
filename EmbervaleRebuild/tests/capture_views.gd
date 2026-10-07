@@ -21,12 +21,18 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		out_dir = args[0]
+	if args.size() > 1:
+		SettingsManager.set_value("graphics_quality", ["low", "medium", "high"].find(args[1]))
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	get_window().size = Vector2i(1280, 720)
 	var world: World = load("res://scenes/world/world.tscn").instantiate()
 	add_child(world)
 	if not world.island.is_navigation_ready:
 		await world.island.navigation_ready
+	await get_tree().process_frame
+	# Views compare the world itself; hide the HUD.
+	if world.hud:
+		world.hud.visible = false
 	print("generation_ms=%.1f stages=%s" % [world.island.generation_time_ms, world.island.stage_times])
 	var rig := world.camera_rig
 	for v in VIEWS:

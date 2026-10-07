@@ -11,6 +11,8 @@ uniform bool use_vertex_color = false;
 uniform float sway = 0.0;
 uniform bool anchored = false;
 uniform float rim_strength = 0.0;
+// Grass chunks keep swaying on the Low preset (wind_grass_only); other plants stop.
+uniform bool is_grass = false;
 
 global uniform float wind_strength;
 global uniform float wind_grass_only;
@@ -22,8 +24,7 @@ void vertex() {
 	if (!use_vertex_color && anchored) {
 		w *= clamp(VERTEX.y * 1.5, 0.0, 1.0);
 	}
-	// Grass-only wind (Low preset) keeps just the lightest weights moving.
-	if (wind_grass_only > 0.5 && w > 0.75) {
+	if (wind_grass_only > 0.5 && !is_grass) {
 		w = 0.0;
 	}
 	vec3 world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

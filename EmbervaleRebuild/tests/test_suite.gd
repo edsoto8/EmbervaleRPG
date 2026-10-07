@@ -9,6 +9,8 @@ var passed := 0
 var current_test := ""
 var world: World
 var _test_failed := false
+## Set by the runner: script errors during a test fail it.
+var error_catcher: ErrorCatcher
 
 
 ## Runs every test_* method. Returns the number of failed tests.
@@ -23,9 +25,14 @@ func run_all(filter: String = "") -> int:
 		current_test = n
 		_test_failed = false
 		var t0 := Time.get_ticks_msec()
+		if error_catcher:
+			error_catcher.take()
 		await before_each()
 		await call(n)
 		await after_each()
+		if error_catcher:
+			for e in error_catcher.take():
+				check(false, "script error: " + e)
 		var ms := Time.get_ticks_msec() - t0
 		if _test_failed:
 			failed_tests += 1

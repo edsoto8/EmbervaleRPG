@@ -1,0 +1,17 @@
+Embervale perf report — 4.7-stable (official), llvmpipe (LLVM 20.1.2, 256 bits)
+Viewport (1280.0, 720.0), renderer gl_compatibility
+Generation: cold 1034 ms, warm median 807 ms (limit 1500) PASS
+Stages (last load): { "terrain": 134.317, "ground": 48.386, "boundaries": 24.369, "dock": 2.292, "village": 2.198, "courtyard": 1.911, "forest": 8.293, "pond": 0.873, "gate": 0.592, "scatter": 9.943, "ground_cover": 7.997, "ground_cover_m5": 26.215, "mainland": 2.049, "landmarks": 0.029, "terrain_mesh": 74.72, "water": 0.368, "water_depth": 69.329, "merge_meshes": 75.964, "ambient_life": 3.386, "bake_navigation": 53.014 }
+low      dock      peak draw calls  72  PASS
+low      village   peak draw calls 104  PASS
+low      forest    peak draw calls  74  PASS
+low      overview  peak draw calls  98  PASS
+medium   dock      peak draw calls  95  PASS
+medium   village   peak draw calls 128  PASS
+medium   forest    peak draw calls  81  PASS
+medium   overview  peak draw calls  99  PASS
+high     dock      peak draw calls 106  PASS
+high     village   peak draw calls 140  PASS
+high     forest    peak draw calls  88  PASS
+high     overview  peak draw calls 158  PASS
+Worst view 158 draw calls (hard limit 450, target 260) PASS

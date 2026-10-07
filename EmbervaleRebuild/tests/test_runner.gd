@@ -8,6 +8,7 @@ const SUITES := {
 	"flow": "res://tests/suites/flow_suite.gd",
 	"tutorial": "res://tests/suites/tutorial_suite.gd",
 	"polish": "res://tests/suites/polish_suite.gd",
+	"graphics": "res://tests/suites/graphics_suite.gd",
 	"playthrough": "res://tests/suites/playthrough_suite.gd",
 }
 
@@ -20,6 +21,8 @@ func _ready() -> void:
 	var only := args[0] if args.size() > 0 else ""
 	var filter := args[1] if args.size() > 1 else ""
 	print("Embervale tests — data dir %s" % AppPaths.root())
+	var catcher := ErrorCatcher.new()
+	OS.add_logger(catcher)
 	var failed := 0
 	var total_passed := 0
 	var failures: Array[String] = []
@@ -35,6 +38,7 @@ func _ready() -> void:
 			continue
 		var suite: TestSuite = script.new()
 		suite.suite_name = key
+		suite.error_catcher = catcher
 		add_child(suite)
 		failed += await suite.run_all(filter)
 		total_passed += suite.passed

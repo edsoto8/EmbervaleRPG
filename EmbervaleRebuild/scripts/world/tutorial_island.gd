@@ -37,6 +37,18 @@ var _rng := RandomNumberGenerator.new()
 var _cover_rng := RandomNumberGenerator.new()
 var _props: Node3D
 var _decor: Node3D
+var _grass_core: Node3D
+var _grass_extra: Node3D
+var _lights: Node3D
+## Grass chunks: core (always) and extra (hidden on Low, giving 40% density).
+var grass_core_chunks: Array = []
+var grass_extra_chunks: Array = []
+var lantern_meshes: Array[MeshInstance3D] = []
+## Ground cover counts by kind (graphics tests).
+var cover_counts := {}
+var sea_depth_image: Image
+var pond_depth_image: Image
+var graphics_quality := 1
 var _boundary: StaticBody3D
 var _keep: Array = []
 var _reserved: Array[Vector3] = []   # (x, z, radius) circles no scattered prop may enter
@@ -66,6 +78,15 @@ func generate() -> void:
 	_decor = Node3D.new()
 	_decor.name = "_decor"
 	add_child(_decor)
+	_grass_core = Node3D.new()
+	_grass_core.name = "_grass_core"
+	add_child(_grass_core)
+	_grass_extra = Node3D.new()
+	_grass_extra.name = "_grass_extra"
+	add_child(_grass_extra)
+	_lights = Node3D.new()
+	_lights.name = "Lanterns"
+	add_child(_lights)
 
 	_stage("ground", _build_ground)
 	_stage("boundaries", _build_boundaries)
@@ -77,14 +98,19 @@ func generate() -> void:
 	_stage("gate", _build_gate)
 	_stage("scatter", _build_scatter)
 	_stage("ground_cover", _build_ground_cover)
+	_stage("ground_cover_m5", _build_extra_cover)
 	_stage("mainland", _build_mainland)
 	_stage("landmarks", _build_landmarks)
 	_stage("terrain_mesh", _build_terrain_mesh)
 	_stage("water", _build_water)
+	_stage("water_depth", _bake_water_depth)
 	_stage("merge_meshes", _merge_meshes)
 	_stage("ambient_life", _build_ambient_life)
 	_stage("bake_navigation", _bake_navigation)
 	await _wait_for_map_sync()
+	apply_graphics_quality(SettingsManager.get_value("graphics_quality"))
+	if not SettingsManager.settings_changed.is_connected(_on_setting):
+		SettingsManager.settings_changed.connect(_on_setting)
 	generation_time_ms = (Time.get_ticks_usec() - t0) / 1000.0
 	is_navigation_ready = true
 	navigation_ready.emit()
@@ -368,10 +394,30 @@ func _build_lamp(parent: Node, p: Vector2) -> void:
 	var lamp := PropFactory.solid(parent, "Lamp", ground_point(p))
 	PropFactory.cylinder_shape(lamp, 0.18, 3.0, Vector3(0, 1.5, 0))
 	PropFactory.cylinder(lamp, 0.07, 0.09, 2.6, Vector3(0, 1.3, 0), Color("3a3a3a"), 6)
-	PropFactory.box(lamp, Vector3(0.32, 0.4, 0.32), Vector3(0, 2.75, 0), Color("ffd27a"))
 	PropFactory.prism(lamp, Vector3(0.45, 0.25, 0.45), Vector3(0, 3.07, 0), Color("3a3a3a"))
 	lamp_positions.append(lamp.position + Vector3(0, 2.75, 0))
+	# The glowing lantern stays out of the batches (emissive, catches the bloom).
+	var glass := MeshInstance3D.new()
+	glass.mesh = PropFactory.box_mesh(Vector3(0.32, 0.4, 0.32))
+	glass.material_override = _lantern_material()
+	glass.position = lamp.position + Vector3(0, 2.75, 0)
+	glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_lights.add_child(glass)
+	lantern_meshes.append(glass)
 	_reserve(p, 0.8)
+
+
+static var _lantern_mat: StandardMaterial3D
+
+
+static func _lantern_material() -> StandardMaterial3D:
+	if _lantern_mat == null:
+		_lantern_mat = StandardMaterial3D.new()
+		_lantern_mat.albedo_color = Color("ffd27a")
+		_lantern_mat.emission_enabled = true
+		_lantern_mat.emission = Color("ffc35a")
+		_lantern_mat.emission_energy_multiplier = 1.6
+	return _lantern_mat
 
 
 func _build_garden(parent: Node) -> void:
@@ -694,6 +740,9 @@ func _build_scatter() -> void:
 		bushes += 1
 
 
+var _grass_count := 0
+
+
 ## Small, collision-free decoration. Uses `_cover_rng` so adding cover never moves other props.
 func _build_ground_cover() -> void:
 	var flowers := [Color("e8d34a"), Color("e86a6a"), Color("f0f0f0"), Color("b07ad8"), Color("6aa8e8")]
@@ -717,11 +766,147 @@ func _build_ground_cover() -> void:
 				var bloom := PropFactory.sphere(tuft, 0.07, off + Vector3(0, 0.32, 0), col, Vector3.ONE, 5, 2)
 				PropFactory.swaying(bloom, 0.9)
 		else:
+			# 40% of the grass is core; the rest only shows on Medium and High.
+			_grass_count += 1
+			tuft.reparent(_grass_core if _grass_count % 5 < 2 else _grass_extra, false)
 			var g := Color("6fa344").lerp(Color("88b850"), _cover_rng.randf())
 			for q in 4:
 				var off := Vector3(cos(q * 1.6) * 0.12, 0, sin(q * 1.6) * 0.12)
 				var blade := PropFactory.cylinder(tuft, 0.0, 0.05, 0.4, off + Vector3(0, 0.2, 0), g, 3)
 				PropFactory.swaying(blade, 1.0, true)
+
+
+## Milestone 5 ground cover, drawn after the original cover from `_cover_rng` so nothing earlier
+## moves: ferns and mushrooms in the forest, tall grass clumps, more flower types, lily pads and
+## cattails on the pond, border stones along the paths, wood piles and a bucket. All collision-free.
+func _build_extra_cover() -> void:
+	cover_counts = {"fern": 0, "mushroom": 0, "tall_grass": 0, "flower": 0, "lily_pad": 0, "cattail": 0,
+			"border_stone": 0, "wood_pile": 0, "bucket": 0}
+	for k in 520:
+		var p := Vector2(_cover_rng.randf_range(-45, 45), _cover_rng.randf_range(-45, 45))
+		var roll := _cover_rng.randf()
+		if not terrain.is_land(p.x, p.y) or IslandLayout.in_courtyard(p, 0.8) or IslandLayout.in_plaza(p, 0.5):
+			continue
+		var t := terrain.tile_at(p.x, p.y)
+		if t != IslandTerrain.Tile.GRASS and t != IslandTerrain.Tile.FOREST:
+			continue
+		if IslandLayout.distance_to_paths(p) < 1.6 or _near_reserved_solid(p):
+			continue
+		if t == IslandTerrain.Tile.FOREST and roll < 0.45:
+			_fern(p)
+		elif t == IslandTerrain.Tile.FOREST and roll < 0.7:
+			_mushrooms(p)
+		elif roll < 0.75:
+			_tall_grass(p)
+		else:
+			_flower_clump(p, roll)
+	# Lily pads and cattails on the pond (cattails stay off the south fishing bank).
+	for k in 14:
+		var a := _cover_rng.randf() * TAU
+		var r := _cover_rng.randf_range(2.6, 5.2)
+		var lp := IslandLayout.POND + Vector2(cos(a), sin(a)) * r
+		var pad := _node_at(_decor, "LilyPad", lp)
+		pad.position.y = IslandLayout.POND_LEVEL + 0.012
+		PropFactory.cylinder(pad, 0.32, 0.32, 0.02, Vector3.ZERO, Color("4f8f3a"), 7)
+		if k % 4 == 0:
+			PropFactory.sphere(pad, 0.07, Vector3(0.08, 0.05, 0), Color("f2c9e0"), Vector3(1, 0.6, 1), 5, 2)
+		cover_counts.lily_pad += 1
+	for k in 10:
+		var a := TAU * (k + 0.5) / 10.0
+		if absf(wrapf(a - PI * 0.5, -PI, PI)) < 0.8:
+			continue
+		var cp := IslandLayout.POND + Vector2(cos(a), sin(a)) * 6.0
+		var clump := _node_at(_decor, "Cattails", cp)
+		for q in 3:
+			var off := Vector3(cos(q * 2.3) * 0.15, 0, sin(q * 2.3) * 0.15)
+			PropFactory.swaying(PropFactory.cylinder(clump, 0.015, 0.025, 1.4, off + Vector3(0, 0.7, 0), Color("6f8f3a"), 4), 0.6, true)
+			PropFactory.swaying(PropFactory.cylinder(clump, 0.045, 0.045, 0.22, off + Vector3(0, 1.32, 0), Color("6b4326"), 5), 0.6)
+		cover_counts.cattail += 1
+	# Border stones along the main paths.
+	for path in IslandLayout.PATHS:
+		for i in path.size() - 1:
+			var a: Vector2 = path[i]
+			var b: Vector2 = path[i + 1]
+			var length := a.distance_to(b)
+			var dir := (b - a) / length
+			var side := Vector2(-dir.y, dir.x)
+			var d := 1.0
+			while d < length - 0.5:
+				for sgn in [-1.0, 1.0]:
+					var sp: Vector2 = a + dir * d + side * sgn * (IslandLayout.PATH_HALF_WIDTH + 0.25)
+					if IslandLayout.in_plaza(sp, 0.6) or IslandLayout.in_courtyard(sp, 0.6) or not terrain.is_land(sp.x, sp.y) \
+							or IslandLayout.on_dock(sp, 1.0) or _near_reserved_solid(sp):
+						continue
+					var stone := _node_at(_decor, "BorderStone", sp, _cover_rng.randf() * TAU, -0.05)
+					var sz := _cover_rng.randf_range(0.12, 0.2)
+					PropFactory.sphere(stone, sz, Vector3(0, sz * 0.4, 0), Color("9a978f").lerp(Color("7f7c75"), _cover_rng.randf()), Vector3(1.3, 0.6, 1.0), 5, 3)
+					cover_counts.border_stone += 1
+				d += 2.2
+	# Wood piles beside two cottages and a bucket by the well.
+	for c in [IslandLayout.COTTAGES[0], IslandLayout.COTTAGES[2]]:
+		var yaw := IslandLayout.yaw_towards(c, IslandLayout.PLAZA)
+		var wp: Vector2 = c + Vector2(cos(yaw), -sin(yaw)) * 3.0
+		var pile := _node_at(_decor, "WoodPile", wp, yaw)
+		for q in 4:
+			PropFactory.cylinder(pile, 0.1, 0.1, 0.9, Vector3((q % 2) * 0.22 - 0.11, 0.1 + (q / 2) * 0.19, 0), Color("8a6440"), 6, Vector3(PI * 0.5, 0, 0))
+		cover_counts.wood_pile += 1
+	var bucket := _node_at(_decor, "Bucket", IslandLayout.WELL + Vector2(1.35, 0.4))
+	PropFactory.cylinder(bucket, 0.2, 0.16, 0.3, Vector3(0, 0.15, 0), Color("7d5634"), 8)
+	PropFactory.cylinder(bucket, 0.205, 0.205, 0.03, Vector3(0, 0.24, 0), Color("4a4a48"), 8)
+	PropFactory.cylinder(bucket, 0.17, 0.17, 0.01, Vector3(0, 0.27, 0), Color("3f6e8e"), 8)
+	cover_counts.bucket += 1
+
+
+func _near_reserved_solid(p: Vector2) -> bool:
+	for r in _reserved:
+		if p.distance_to(Vector2(r.x, r.y)) < r.z * 0.8:
+			return true
+	return false
+
+
+func _fern(p: Vector2) -> void:
+	var fern := _node_at(_decor, "Fern", p, _cover_rng.randf() * TAU)
+	var g := Color("3f7a32").lerp(Color("5a8f3a"), _cover_rng.randf())
+	for q in 5:
+		var a := TAU * q / 5.0
+		var frond := PropFactory.box(fern, Vector3(0.12, 0.02, 0.55), Vector3(cos(a) * 0.22, 0.18, sin(a) * 0.22), g, Vector3(0.5, -a + PI * 0.5, 0))
+		PropFactory.swaying(frond, 0.6)
+	cover_counts.fern += 1
+
+
+func _mushrooms(p: Vector2) -> void:
+	var m := _node_at(_decor, "Mushrooms", p)
+	for q in 3:
+		var off := Vector3(cos(q * 2.2) * 0.14, 0, sin(q * 2.2) * 0.14)
+		var h := 0.08 + q * 0.03
+		PropFactory.cylinder(m, 0.025, 0.03, h, off + Vector3(0, h * 0.5, 0), Color("efe6cf"), 5)
+		PropFactory.sphere(m, 0.06 + q * 0.01, off + Vector3(0, h, 0), Color("c84a32") if q != 1 else Color("b07a4a"), Vector3(1, 0.55, 1), 6, 3)
+	cover_counts.mushroom += 1
+
+
+func _tall_grass(p: Vector2) -> void:
+	_grass_count += 1
+	var host := _grass_core if _grass_count % 5 < 2 else _grass_extra
+	var clump := _node_at(host, "TallGrass", p)
+	var g := Color("7aa84a").lerp(Color("9dbf5a"), _cover_rng.randf())
+	for q in 6:
+		var off := Vector3(cos(q * 1.05) * 0.16, 0, sin(q * 1.05) * 0.16)
+		var blade := PropFactory.cylinder(clump, 0.0, 0.05, 0.75, off + Vector3(0, 0.37, 0), g, 3)
+		blade.rotation = Vector3(off.z * 1.5, 0, -off.x * 1.5)
+		PropFactory.swaying(blade, 1.0, true)
+	cover_counts.tall_grass += 1
+
+
+func _flower_clump(p: Vector2, roll: float) -> void:
+	var f := _node_at(_decor, "Flowers", p)
+	var kinds := [[Color("f4f1ea"), Color("f0c43a")], [Color("e86a9a"), Color("f7d0e0")], [Color("6a8ae8"), Color("f0f0f0")]]
+	var kind: Array = kinds[int(roll * 100.0) % kinds.size()]
+	for q in 4:
+		var off := Vector3(cos(q * 1.6) * 0.18, 0, sin(q * 1.6) * 0.18)
+		PropFactory.swaying(PropFactory.cylinder(f, 0.012, 0.012, 0.34, off + Vector3(0, 0.17, 0), Color("5f8f3a"), 3), 0.8, true)
+		PropFactory.swaying(PropFactory.sphere(f, 0.065, off + Vector3(0, 0.36, 0), kind[0], Vector3(1, 0.5, 1), 6, 2), 0.9)
+		PropFactory.swaying(PropFactory.sphere(f, 0.03, off + Vector3(0, 0.385, 0), kind[1], Vector3.ONE, 4, 2), 0.9)
+	cover_counts.flower += 1
 
 
 func _build_mainland() -> void:
@@ -750,9 +935,10 @@ func _build_mainland() -> void:
 			var b := Vector3(xb, hgt.call(xb, za), za)
 			var c := Vector3(xb, hgt.call(xb, zb), zb)
 			var d := Vector3(xa, hgt.call(xa, zb), zb)
+			# One colour per quad, so the far beach reads as a clean strip.
+			var avg: float = (a.y + b.y + c.y + d.y) / 4.0
+			var col := Color("d9c48f") if j == 0 else (Color("5f8a45") if avg < 12.0 else Color("7d7f72"))
 			for tri in [[a, c, b], [a, d, c]]:
-				var avg: float = (tri[0].y + tri[1].y + tri[2].y) / 3.0
-				var col := Color("d9c48f") if avg < 0.8 else (Color("5f8a45") if avg < 12.0 else Color("7d7f72"))
 				for v in tri:
 					st.set_color(col)
 					st.add_vertex(v)
@@ -851,6 +1037,49 @@ func _build_water() -> void:
 	add_child(pond)
 
 
+## Bakes signed water depth (metres below the still surface; negative over land) for the sea and the
+## pond into textures the water shader samples, so no depth-buffer reads are needed.
+func _bake_water_depth() -> void:
+	var sea_rect := Rect2(-64, -64, 128, 128)
+	sea_depth_image = _depth_image(sea_rect, 256, IslandLayout.SEA_LEVEL)
+	_apply_depth(sea, sea_depth_image, sea_rect, 3.0)
+	var pond_rect := Rect2(IslandLayout.POND.x - 8.0, IslandLayout.POND.y - 8.0, 16.0, 16.0)
+	pond_depth_image = _depth_image(pond_rect, 64, IslandLayout.POND_LEVEL)
+	_apply_depth(pond, pond_depth_image, pond_rect, 0.9)
+	var posts := PackedVector4Array()
+	for wp in _water_posts.slice(0, 24):
+		posts.append(Vector4(wp.x, wp.y, 0, 0))
+	var sea_mat: ShaderMaterial = sea.material_override
+	sea_mat.set_shader_parameter("posts", posts)
+	sea_mat.set_shader_parameter("post_count", posts.size())
+
+
+func _depth_image(rect: Rect2, res: int, level: float) -> Image:
+	var img := Image.create(res, res, false, Image.FORMAT_R8)
+	for j in res:
+		for i in res:
+			var x := rect.position.x + (i + 0.5) / res * rect.size.x
+			var z := rect.position.y + (j + 0.5) / res * rect.size.y
+			var depth := level - terrain.height_at(x, z)
+			img.set_pixel(i, j, Color(clampf((depth + 2.0) / 8.0, 0.0, 1.0), 0, 0))
+	return img
+
+
+## Decoded depth (metres) from a baked image at a world point (tests).
+func baked_depth(img: Image, rect: Rect2, x: float, z: float) -> float:
+	var i := clampi(int((x - rect.position.x) / rect.size.x * img.get_width()), 0, img.get_width() - 1)
+	var j := clampi(int((z - rect.position.y) / rect.size.y * img.get_height()), 0, img.get_height() - 1)
+	return img.get_pixel(i, j).r * 8.0 - 2.0
+
+
+func _apply_depth(mi: MeshInstance3D, img: Image, rect: Rect2, max_depth: float) -> void:
+	var mat: ShaderMaterial = mi.material_override
+	mat.set_shader_parameter("depth_tex", ImageTexture.create_from_image(img))
+	mat.set_shader_parameter("has_depth", true)
+	mat.set_shader_parameter("depth_rect", Vector4(rect.position.x, rect.position.y, rect.size.x, rect.size.y))
+	mat.set_shader_parameter("max_depth", max_depth)
+
+
 # --- batching and navigation ----------------------------------------------------------------------
 
 ## Replaces every static mesh using a shared PropFactory material with vertex-coloured chunks.
@@ -862,6 +1091,16 @@ func _merge_meshes() -> void:
 	MeshMerger.merge(_props, _keep, 32.0, {"target": batches, "name": "Props"})
 	decor_chunks = MeshMerger.merge(_decor, _keep, 16.0, {"target": batches, "name": "Decor",
 			"cast_shadow": false, "visibility_end": SMALL_DECOR_FADE})
+	var grass_mat := _grass_material()
+	grass_core_chunks = MeshMerger.merge(_grass_core, [], 16.0, {"target": batches, "name": "GrassCore",
+			"cast_shadow": false, "visibility_end": SMALL_DECOR_FADE, "material": grass_mat})
+	grass_extra_chunks = MeshMerger.merge(_grass_extra, [], 16.0, {"target": batches, "name": "GrassExtra",
+			"cast_shadow": false, "visibility_end": SMALL_DECOR_FADE, "material": grass_mat})
+	decor_chunks.append_array(grass_core_chunks)
+	decor_chunks.append_array(grass_extra_chunks)
+	# The merged sources are now empty holders.
+	for holder in [_decor, _grass_core, _grass_extra]:
+		holder.queue_free()
 	var far := get_node_or_null("MainlandProps")
 	if far:
 		MeshMerger.merge(far, [], 200.0, {"target": batches, "name": "Far", "cast_shadow": false})
@@ -874,11 +1113,59 @@ func _build_ambient_life() -> void:
 	ambient.setup(self)
 
 
+static var _grass_mat: ShaderMaterial
+
+
+## Vertex-coloured material for grass chunks; flagged so grass keeps moving on the Low preset.
+static func _grass_material() -> ShaderMaterial:
+	if _grass_mat == null:
+		_grass_mat = ShaderMaterial.new()
+		_grass_mat.shader = PropFactory.SHADER
+		_grass_mat.set_shader_parameter("use_vertex_color", true)
+		_grass_mat.set_shader_parameter("is_grass", true)
+	return _grass_mat
+
+
 ## Sets how far small decoration stays visible (graphics presets).
 func set_decor_fade(distance: float) -> void:
 	for c in decor_chunks:
 		if is_instance_valid(c):
 			c.visibility_range_end = distance
+
+
+const DECOR_FADE := [45.0, 75.0, 100.0]
+
+
+## Grass density and small-decor fade for a preset (Low 40% grass / 45 m, Medium 100% / 75 m,
+## High 100% / 100 m). Called on generation and whenever the setting changes.
+func apply_graphics_quality(level: int) -> void:
+	graphics_quality = clampi(level, 0, 2)
+	set_decor_fade(DECOR_FADE[graphics_quality])
+	for c in grass_extra_chunks:
+		if is_instance_valid(c):
+			c.visible = graphics_quality > 0
+
+
+func _on_setting(key: String, value: Variant) -> void:
+	if key == "graphics_quality":
+		apply_graphics_quality(value)
+
+
+func _exit_tree() -> void:
+	if SettingsManager.settings_changed.is_connected(_on_setting):
+		SettingsManager.settings_changed.disconnect(_on_setting)
+
+
+## Visible grass tufts as a fraction of all grass (for tests): 0.4 on Low, 1.0 otherwise.
+func grass_density() -> float:
+	var total := 0
+	var shown := 0
+	for c in grass_core_chunks + grass_extra_chunks:
+		var n: int = (c as MeshInstance3D).mesh.get_faces().size()
+		total += n
+		if c.visible:
+			shown += n
+	return float(shown) / maxf(total, 1.0)
 
 
 func _bake_navigation() -> void:

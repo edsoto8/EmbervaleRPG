@@ -79,3 +79,24 @@ counts and generation times are. Native Windows and real-hardware checks are lis
   audio by ear, live motion review.
 - M4 captures retained for M5 comparison: `docs/screenshots/m4/` (same cameras as
   `tests/capture_views.tscn`).
+
+## Milestone 5 — Graphics upgrade
+
+- Import/parse: clean. The test runner now installs an engine `Logger` (`tests/error_catcher.gd`), so
+  any runtime script error during a test fails that test.
+- All suites pass (85 tests). `graphics` covers live presets (shadow distance, MSAA off/2x/4x, bloom
+  and grading, vignette, decor fade 45/75/100 m, grass density 40%/100%, wind scope), persistence
+  and the Settings control (default Medium), the baked water depth (shallow at the shore, deep
+  offshore, negative over land; pond deep in the middle), wind weights surviving batching (rigid
+  trunks, swaying canopies, anchored grass), wet sand and softened terrain transitions, the richer
+  character (rim light, merged parts, every hair style), the new ground cover and glowing lanterns.
+- Perf report (`docs/perf_m5.txt`, llvmpipe, HUD on): generation cold 1034 ms, warm median 807 ms;
+  worst view 158 draw calls on High (limit 450, target 260); every view/preset passes.
+- Same-camera M4/M5 captures: `docs/screenshots/m4/`, `docs/screenshots/m5/` (Medium, HUD hidden),
+  side by side in `docs/screenshots/compare/`; Low/High samples in `docs/screenshots/m5_low|high/`.
+- Normal rendered runs: only the driver's "Could not set V-Sync mode" warning (llvmpipe). Graceful
+  shutdown verified with `tests/quit_check.tscn` (menu music playing, `GameManager.quit_game()`):
+  no leaks. A raw `--quit-after` smoke run still reports 2 leaked ObjectDB instances because it
+  bypasses that shutdown path (recorded separately, as CLAUDE.md asks).
+- **Not done:** a video or live review of water, gusts, anchored stems and transitions in motion,
+  and frame times on real GPUs.

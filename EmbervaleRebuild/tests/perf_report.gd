@@ -59,6 +59,9 @@ func _ready() -> void:
 		var f := FileAccess.open(args[0], FileAccess.WRITE)
 		if f:
 			f.store_string("\n".join(_lines) + "\n")
+	world.queue_free()
+	await get_tree().process_frame
+	await get_tree().process_frame
 	get_tree().quit()
 
 
