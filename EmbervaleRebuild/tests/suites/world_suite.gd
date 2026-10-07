@@ -3,7 +3,7 @@ extends TestSuite
 
 const LANDMARK_RANGES := {
 	"npc_instructor": 2.0, "npc_merchant": 2.0, "npc_fisher": 2.0, "npc_wanderer": 2.0,
-	"training_dummy": 1.9, "oak_tree": 1.7, "willow_tree": 1.7,
+	"training_dummy": 1.9, "oak_tree": 1.7, "willow_tree": 1.7, "npc_smith": 2.0,
 }
 
 
@@ -81,6 +81,20 @@ func test_all_landmarks_reachable_from_dock() -> void:
 		var allowed: float = LANDMARK_RANGES.get(key, 0.6)
 		check(flat_distance(end, target) <= allowed,
 				"%s reachable (path ends %.2f m away, allowed %.2f)" % [key, flat_distance(end, target), allowed])
+
+
+## Every tree and mining rock can be worked from the navmesh (range measured like the interaction).
+func test_resource_nodes_reachable() -> void:
+	var start: Vector3 = world.island.landmarks.dock
+	var nodes: Array = world.island.choppable_trees.duplicate()
+	nodes.append_array(world.island.mining_rocks)
+	check(world.island.mining_rocks.size() == 8, "eight mining rocks")
+	for n in nodes:
+		var end := _path_end(start, n.global_position)
+		var reach: float = n.interaction_range()
+		check(flat_distance(end, n.global_position) <= reach,
+				"%s at (%.1f, %.1f) reachable (path ends %.2f m away, range %.2f)" % [n.interaction_name(),
+				n.global_position.x, n.global_position.z, flat_distance(end, n.global_position), reach])
 
 
 func test_spawn_faces_north_on_dock() -> void:
@@ -260,3 +274,4 @@ func test_obstacles_are_tall_enough() -> void:
 			if h < 0.99:
 				short += 1
 	check_eq(short, 0, "every obstacle collision shape is at least ~1 m tall")
+

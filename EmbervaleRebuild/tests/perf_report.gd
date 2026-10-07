@@ -9,6 +9,8 @@ const VIEWS := [
 	["village", Vector3(0, 0, 18), 0.6, 16.0, 45.0],
 	["forest", Vector3(-24, 0, -12), 0.8, 18.0, 50.0],
 	["overview", Vector3(0, 0, 4), 0.0, 95.0, 72.0],
+	["smithy", Vector3(20, 0, 20.5), -0.45, 13.0, 35.0],
+	["quarry", Vector3(7, 0, -31), -0.64, 15.0, 42.0],
 ]
 const WARMUP := 30
 const SAMPLES := 120

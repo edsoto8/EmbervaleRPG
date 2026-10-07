@@ -26,6 +26,11 @@ func setup(i: TutorialIsland, p: PlayerController, d: TutorialDirector) -> void:
 	for cpos in IslandLayout.COTTAGES:
 		_stamp(img, cpos, 2, Color("8a4b33"))
 	_stamp(img, IslandLayout.GATE, 2, Color("8d8a82"))
+	# Milestone 7: the forge (roof and furnace) and the quarry's ore rocks.
+	_stamp(img, IslandLayout.FURNACE + Vector2(0.3, 1.0), 2, Color("6a4a3a"))
+	_stamp(img, IslandLayout.FURNACE, 0, Color("ff8a2a"))
+	for k in IslandLayout.MINING_ROCKS.size():
+		_stamp(img, IslandLayout.mining_rock_position(k), 0, Color("5e5a54"))
 	_texture = ImageTexture.create_from_image(img)
 
 

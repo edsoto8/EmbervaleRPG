@@ -206,6 +206,22 @@ func _build_tools() -> void:
 	_tool_mesh(sword, PropFactory.box_mesh(Vector3(0.04, 0.14, 0.04)), Color("4a3424"), Vector3(0, -0.02, 0))
 	sword.rotation.x = -PI * 0.5
 	tools["sword"] = sword
+	var pick := Node3D.new()
+	pick.name = "Pickaxe"
+	hand_r.add_child(pick)
+	_tool_mesh(pick, PropFactory.box_mesh(Vector3(0.05, 0.66, 0.05)), wood, Vector3(0, -0.22, 0))
+	_tool_mesh(pick, PropFactory.box_mesh(Vector3(0.05, 0.06, 0.46)), steel, Vector3(0, -0.5, -0.02))
+	_tool_mesh(pick, PropFactory.box_mesh(Vector3(0.04, 0.05, 0.12)), steel, Vector3(0, -0.53, -0.28))
+	_tool_mesh(pick, PropFactory.box_mesh(Vector3(0.04, 0.05, 0.12)), steel, Vector3(0, -0.53, 0.24))
+	pick.rotation.x = -PI * 0.5
+	tools["pickaxe"] = pick
+	var hammer := Node3D.new()
+	hammer.name = "Hammer"
+	hand_r.add_child(hammer)
+	_tool_mesh(hammer, PropFactory.box_mesh(Vector3(0.045, 0.4, 0.045)), wood, Vector3(0, -0.12, 0))
+	_tool_mesh(hammer, PropFactory.box_mesh(Vector3(0.09, 0.09, 0.2)), Color("6e7276"), Vector3(0, -0.32, -0.02))
+	hammer.rotation.x = -PI * 0.5
+	tools["hammer"] = hammer
 	var tinder := Node3D.new()
 	tinder.name = "Tinderbox"
 	_tool_mesh(tinder, PropFactory.box_mesh(Vector3(0.1, 0.06, 0.07)), Color("6e6a62"), Vector3.ZERO)
@@ -234,6 +250,15 @@ func _apply_rim() -> void:
 		for c in part.get_children():
 			if c is MeshInstance3D:
 				c.material_override = PropFactory.character_vertex_mat()
+
+
+## Cheaper shadows for villagers: only the torso and legs cast them (the head and arms add three
+## shadow-pass draw calls per split and barely show from the game's camera). The player keeps all.
+func set_reduced_shadows(on: bool) -> void:
+	for part in [head, arm_l, arm_r]:
+		for c in part.get_children():
+			if c is MeshInstance3D:
+				c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if on else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 func show_tool(tool_name: String) -> void:
@@ -265,7 +290,8 @@ func is_turning() -> bool:
 
 # --- actions -------------------------------------------------------------------------------------
 
-## Plays a timed animation ("chop", "fish", "attack", "light", "cook", "eat", "talk", "cheer").
+## Plays a timed animation ("chop", "mine", "smith", "smelt", "fish", "attack", "light", "cook", "eat",
+## "talk", "cheer").
 ## A positive duration stops it automatically; zero keeps it running until stop_action().
 func play_action(action_name: String, duration: float = 0.0) -> void:
 	current_action = action_name
@@ -275,6 +301,10 @@ func play_action(action_name: String, duration: float = 0.0) -> void:
 	match action_name:
 		"chop":
 			show_tool("axe")
+		"mine":
+			show_tool("pickaxe")
+		"smith":
+			show_tool("hammer")
 		"fish":
 			show_tool("rod")
 		"attack":
@@ -369,6 +399,26 @@ func _animate_action() -> void:
 			arm_r.rotation = Vector3(-2.4 + 1.9 * (1.0 - raise) if cyc > 0.55 else -0.6 - 1.8 * smoothstep(0.0, 0.55, cyc), 0, 0.15)
 			arm_l.rotation = Vector3(arm_r.rotation.x * 0.8, 0, -0.25)
 			torso.rotation.y = -0.2
+		"mine":
+			# Overhead pickaxe swing, a little slower and lower than the axe.
+			var cyc := fmod(t, 1.2) / 1.2
+			_impact_at(cyc, 0.6)
+			var lift := -0.5 - 2.3 * smoothstep(0.0, 0.5, cyc)
+			arm_r.rotation = Vector3(lift + 2.5 * smoothstep(0.5, 0.62, cyc) if cyc > 0.5 else lift, 0, 0.1)
+			arm_l.rotation = Vector3(arm_r.rotation.x * 0.9, 0, -0.15)
+			torso.rotation.x = 0.25 * smoothstep(0.5, 0.62, cyc) if cyc > 0.5 else -0.05
+			hips.position.y = 0.88
+		"smith":
+			# Short, quick hammer strokes on the anvil.
+			var cyc := fmod(t, 0.6) / 0.6
+			_impact_at(cyc, 0.55)
+			arm_r.rotation = Vector3(-1.9 + 1.2 * smoothstep(0.42, 0.55, cyc) if cyc > 0.42 else -0.7 - 1.2 * smoothstep(0.0, 0.42, cyc), 0, 0.15)
+			arm_l.rotation = Vector3(-0.85, 0, -0.25)
+			torso.rotation.x = 0.18
+		"smelt":
+			arm_r.rotation = Vector3(-1.1 + sin(t * 2.4) * 0.12, 0, 0.12)
+			arm_l.rotation = Vector3(-1.1 + sin(t * 2.4 + 0.6) * 0.12, 0, -0.12)
+			torso.rotation.x = 0.12
 		"attack":
 			var cyc := fmod(t, 1.2) / 1.2
 			_impact_at(cyc, 0.55)

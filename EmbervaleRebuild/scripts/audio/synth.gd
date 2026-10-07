@@ -263,6 +263,25 @@ static func hit(rng: RandomNumberGenerator) -> AudioStreamWAV:
 	return to_stream(normalise(b, 0.7))
 
 
+## Pickaxe on rock: a hard, short click with a dull stony body.
+static func mine(rng: RandomNumberGenerator) -> AudioStreamWAV:
+	var b := buffer(0.3)
+	add_noise(b, rng, 0.0, 0.08, 0.9, 0.9, 0.0005, 0.012)
+	add_tone(b, 0.0, 1850.0, 0.12, 0.35, "sine", 0.0005, 0.03)
+	add_tone(b, 0.0, 2730.0, 0.1, 0.2, "sine", 0.0005, 0.02)
+	add_noise(b, rng, 0.005, 0.22, 0.45, 0.12, 0.002, 0.05)
+	return to_stream(normalise(b, 0.75))
+
+
+## Hammer on anvil: a bright, inharmonic ring.
+static func anvil() -> AudioStreamWAV:
+	var b := buffer(0.9)
+	for partial in [[1320.0, 0.5, 0.35], [2290.0, 0.3, 0.22], [3410.0, 0.18, 0.12], [4870.0, 0.1, 0.07]]:
+		add_tone(b, 0.0, partial[0], 0.85, partial[1], "sine", 0.0008, partial[2])
+	add_tone(b, 0.0, 180.0, 0.08, 0.4, "sine", 0.0008, 0.02)
+	return to_stream(normalise(b, 0.6))
+
+
 # --- loops (slow: rendered on worker threads) ---------------------------------------------------------
 
 ## Breaking waves: low-passed noise with slow swells. Starts and ends silent-ish for a clean loop.

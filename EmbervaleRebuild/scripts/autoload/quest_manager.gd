@@ -10,6 +10,9 @@ signal tutorial_completed
 signal task_completed(id: String)
 signal reward_paid(id: String)
 signal all_tasks_completed
+signal quest_started(id: String)
+signal quest_progress(id: String, flag: String)
+signal quest_completed(id: String)
 
 const WASD_GOAL := 4.0
 const LOGS_GOAL := 3
@@ -33,6 +36,8 @@ var inventory_opened := false
 var logs_inspected := false
 var tasks: Array[String] = []
 var pending_task_rewards: Array[String] = []
+## Quest progress (Milestone 7): {quest_id: {"stage": int, "flags": [String]}}; absent = stage 0.
+var quests := {}
 ## Runtime only: whether the inventory panel is currently open (reported by the HUD).
 var inventory_open := false
 
@@ -53,6 +58,7 @@ func reset() -> void:
 	logs_inspected = false
 	tasks = []
 	pending_task_rewards = []
+	quests = {}
 	inventory_open = false
 	progress_changed.emit()
 
@@ -66,6 +72,7 @@ func to_dict() -> Dictionary:
 		"logs_inspected": logs_inspected,
 		"tasks": tasks.duplicate(),
 		"pending_task_rewards": pending_task_rewards.duplicate(),
+		"quests": quests.duplicate(true),
 	}
 
 
@@ -79,6 +86,14 @@ func from_dict(data: Dictionary) -> void:
 	logs_inspected = data.get("logs_inspected", false)
 	tasks.assign(data.get("tasks", []))
 	pending_task_rewards.assign(data.get("pending_task_rewards", []))
+	quests = {}
+	var q: Variant = data.get("quests", {})
+	if q is Dictionary:
+		for id in q:
+			if QuestData.is_known(id) and q[id] is Dictionary:
+				var flags: Array = q[id].get("flags", [])
+				quests[id] = {"stage": clampi(int(q[id].get("stage", 0)), 0, QuestData.final_stage(id)),
+						"flags": flags.duplicate()}
 	inventory_open = false
 	_loading = false
 	progress_changed.emit()
@@ -282,3 +297,54 @@ func catch_up() -> void:
 	retry_pending_rewards()
 	if current_id() == "collect_logs" and InventoryManager.count("logs") >= LOGS_GOAL:
 		_complete()
+
+
+# --- quests (Milestone 7) -------------------------------------------------------------------------
+
+func quest_stage(id: String) -> int:
+	return int(quests.get(id, {}).get("stage", 0))
+
+
+func is_quest_complete(id: String) -> bool:
+	return QuestData.is_known(id) and quest_stage(id) >= QuestData.final_stage(id)
+
+
+func has_quest_flag(id: String, flag: String) -> bool:
+	return flag in quests.get(id, {}).get("flags", [])
+
+
+func _quest_entry(id: String) -> Dictionary:
+	if not quests.has(id):
+		quests[id] = {"stage": 0, "flags": []}
+	return quests[id]
+
+
+## Stage 0 -> 1. Returns false if the quest is unknown or already started.
+func start_quest(id: String) -> bool:
+	if not QuestData.is_known(id) or quest_stage(id) != 0:
+		return false
+	_quest_entry(id).stage = 1
+	GameManager.post_message("Quest started: %s." % QuestData.title(id))
+	quest_started.emit(id)
+	progress_changed.emit()
+	return true
+
+
+## Ticks a checklist flag from an activity event (any time before the quest completes).
+func report_quest_flag(id: String, flag: String) -> void:
+	if not flag in QuestData.flag_ids(id) or is_quest_complete(id) or has_quest_flag(id, flag):
+		return
+	_quest_entry(id).flags.append(flag)
+	quest_progress.emit(id, flag)
+	progress_changed.emit()
+
+
+## Moves a started quest to its final stage. Rewards are paid by the caller's transaction.
+func complete_quest(id: String) -> bool:
+	if not QuestData.is_known(id) or quest_stage(id) < 1 or is_quest_complete(id):
+		return false
+	_quest_entry(id).stage = QuestData.final_stage(id)
+	GameManager.post_message("Quest complete: %s!" % QuestData.title(id))
+	quest_completed.emit(id)
+	progress_changed.emit()
+	return true

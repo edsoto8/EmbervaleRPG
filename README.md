@@ -21,9 +21,10 @@ what still needs a person (native Windows runs, real-GPU performance, listening 
 |---|---|
 | [SPEC_GAME.md](SPEC_GAME.md) | Authoritative base game (M1–M4), inventory, performance and pacing |
 | [SPEC_SAVE.md](SPEC_SAVE.md) | Canonical JSON schema, legacy import, validation and failure behavior |
-| [PLAN.md](PLAN.md) | Architecture, milestone checklist and verification gates (M1–M6) |
+| [PLAN.md](PLAN.md) | Architecture, milestone checklist and verification gates (M1–M7) |
 | [SPEC_GRAPHICS.md](SPEC_GRAPHICS.md) | Requirements for Milestone 5: lighting, water, wind, quality presets |
 | [SPEC_SKILLS.md](SPEC_SKILLS.md) | Requirements for Milestone 6: skills, XP, shop, island tasks |
+| [SPEC_SMITHING.md](SPEC_SMITHING.md) | Requirements for Milestone 7: mining, smithing, Brann's quest |
 | [CLAUDE.md](CLAUDE.md) | Commands, conventions, historical engine gotchas and optional delegation workflow |
 
 ## The game
@@ -42,11 +43,15 @@ what still needs a person (native Windows runs, real-GPU performance, listening 
       the **Tutorial Complete** screen.
 5. **After the tutorial**: Woodcutting, Fishing, Firemaking, Cooking and Attack on the classic RuneScape
    XP curve, Marla's market for buying and selling, and ten island tasks that pay coins.
+6. **Mining, Smithing and the first quest** (Milestone 7): Brann the blacksmith's quest *The Smith's
+   Apprentice* sends you to the quarry for copper and tin, to his furnace for a bronze bar and to his
+   anvil for a dagger. Afterwards the forge stays open for bronze and iron gear.
 
 **The island** has an arrival dock with a moored boat, a village (cottages, well, market stalls,
-garden), a fenced training courtyard with dummies, a forest clearing, a fishing pond, and a walled exit
-gate facing a distant mainland. **NPCs:** Instructor Maelis, Marla the merchant, Old Tobin by the pond,
-and Pip, who wanders the plaza.
+garden), a fenced training courtyard with dummies, a forest clearing, a fishing pond, an open-air
+smithy east of the plaza, a quarry by the gate path, and a walled exit gate facing a distant mainland.
+**NPCs:** Instructor Maelis, Marla the merchant, Old Tobin by the pond, Brann the blacksmith, and Pip,
+who wanders the plaza.
 
 ## Design decisions
 
@@ -76,7 +81,7 @@ requirements, and [CLAUDE.md](CLAUDE.md) records implementation guidance.
 | W / A / S / D | Move forward / left / back / right (relative to the camera) |
 | Shift (hold) | Run (with both keyboard and click movement) |
 | Left click on the ground | Walk there (a yellow ✕ marks the destination) |
-| Left click on an NPC, tree, fishing spot, fire, dummy or stall | Walk over and talk, chop, fish, cook, train or browse |
+| Left click on an NPC, tree, rock, fishing spot, fire, dummy, stall, furnace or anvil | Walk over and talk, chop, mine, fish, cook, train, browse, smelt or smith |
 | E | Interact with the nearest NPC or object in reach |
 | I | Open / close the inventory (click an item to examine it, then Light / Eat / Drop; Drop confirms permanent discard) |
 | K | Open / close the Skills panel |

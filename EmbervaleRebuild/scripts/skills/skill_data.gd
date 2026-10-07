@@ -3,9 +3,9 @@ extends RefCounted
 ## Skill numbers and formulas (SPEC_SKILLS.md S10). Every chance roll goes through
 ## SkillsManager.chance() so tests can make luck deterministic.
 
-const SKILLS := ["attack", "woodcutting", "fishing", "firemaking", "cooking"]
+const SKILLS := ["attack", "woodcutting", "fishing", "firemaking", "cooking", "mining", "smithing"]
 const SKILL_NAMES := {"attack": "Attack", "woodcutting": "Woodcutting", "fishing": "Fishing",
-		"firemaking": "Firemaking", "cooking": "Cooking"}
+		"firemaking": "Firemaking", "cooking": "Cooking", "mining": "Mining", "smithing": "Smithing"}
 const MAX_LEVEL := 99
 const MAX_HITPOINTS := 10
 const HP_REGEN_SECONDS := 30.0
@@ -45,6 +45,28 @@ const EAT_SECONDS := 1.0
 const ATTACK_SECONDS := 1.2
 const ATTACK_XP := 8.0
 const DUMMY_MAX_LEVEL := 10
+
+# Milestone 7 (SPEC_SMITHING.md S4).
+const ROCKS := {
+	"copper": {"name": "Copper rock", "level": 1, "xp": 17.5, "seconds": 2.4, "respawn": 8.0, "ore": "copper_ore"},
+	"tin": {"name": "Tin rock", "level": 1, "xp": 17.5, "seconds": 2.4, "respawn": 8.0, "ore": "tin_ore"},
+	"iron": {"name": "Iron rock", "level": 8, "xp": 35.0, "seconds": 3.0, "respawn": 15.0, "ore": "iron_ore"},
+}
+const STEEL_PICKAXE_MULTIPLIER := 0.70
+const PICKAXES := ["steel_pickaxe", "bronze_pickaxe"]
+
+const SMELT_SECONDS := 1.8
+const SMITH_SECONDS := 2.4
+## Crafting recipes in panel order: station, inputs, level, XP. Iron bars can fail (smelt_chance).
+const RECIPES := {
+	"bronze_bar": {"station": "furnace", "inputs": {"copper_ore": 1, "tin_ore": 1}, "level": 1, "xp": 12.0},
+	"iron_bar": {"station": "furnace", "inputs": {"iron_ore": 1}, "level": 8, "xp": 25.0},
+	"bronze_dagger": {"station": "anvil", "inputs": {"bronze_bar": 1}, "level": 1, "xp": 25.0},
+	"bronze_pickaxe": {"station": "anvil", "inputs": {"bronze_bar": 1}, "level": 3, "xp": 25.0},
+	"bronze_helm": {"station": "anvil", "inputs": {"bronze_bar": 2}, "level": 5, "xp": 50.0},
+	"iron_dagger": {"station": "anvil", "inputs": {"iron_bar": 1}, "level": 10, "xp": 50.0},
+	"iron_helm": {"station": "anvil", "inputs": {"iron_bar": 2}, "level": 12, "xp": 100.0},
+}
 
 static var _thresholds: PackedFloat64Array
 
@@ -122,3 +144,25 @@ static func burn_chance(raw_id: String, level: int) -> float:
 	if level >= c.stop_burn:
 		return 0.0
 	return 0.55 * float(c.stop_burn - level) / float(c.stop_burn - c.level)
+
+
+static func mine_seconds(rock: String, level: int, steel_pickaxe: bool) -> float:
+	var r: Dictionary = ROCKS[rock]
+	var f := clampf(1.0 - 0.03 * (level - r.level), 0.55, 1.0)
+	return r.seconds * f * (STEEL_PICKAXE_MULTIPLIER if steel_pickaxe else 1.0)
+
+
+## Chance a smelt succeeds (only iron can fail).
+static func smelt_chance(bar: String, level: int) -> float:
+	if bar != "iron_bar":
+		return 1.0
+	return clampf(0.5 + 0.05 * (level - RECIPES.iron_bar.level), 0.5, 1.0)
+
+
+## Recipe ids for a station ("furnace" or "anvil"), in display order.
+static func recipes_for(station: String) -> Array[String]:
+	var out: Array[String] = []
+	for id in RECIPES:
+		if RECIPES[id].station == station:
+			out.append(id)
+	return out

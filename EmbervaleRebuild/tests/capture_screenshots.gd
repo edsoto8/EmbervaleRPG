@@ -150,6 +150,51 @@ func skills_shots(w: World) -> void:
 	await shot("18_training")
 	w.player.cancel_action("shot")
 	SkillsManager.roll_override = null
+	await smithing_shots(w)
+
+
+## Milestone 7: Brann's offer, mining in the quarry, the tracker checklist, the anvil panel and smithing.
+func smithing_shots(w: World) -> void:
+	var brann: Npc = w.smithy.brann
+	w.player.teleport(w.island.landmarks.anvil + Vector3(-0.4, 0, 0.9), PI * 0.5)
+	w.camera_rig.set_view(-0.8, 28.0, 7.0)
+	w.camera_rig.snap()
+	w.director.talk_to(brann)
+	await _seconds(0.4)
+	DialogueManager.advance()
+	await _seconds(2.0)
+	await shot("19_brann")
+	DialogueManager.choose(0)
+	for i in 6:
+		await _seconds(0.2)
+		if DialogueManager.active and not DialogueManager.has_choices():
+			DialogueManager.advance()
+	DialogueManager.end()
+	await _frames(5)
+	var rock: MiningRock = w.island.mining_rocks[0]
+	var inward: Vector3 = w.island.landmarks.quarry - rock.global_position
+	inward.y = 0
+	w.player.teleport(w.island.closest_walkable(rock.global_position + inward.normalized() * 1.45), 0.0)
+	w.camera_rig.set_view(atan2(inward.x, inward.z), 32.0, 7.5)
+	w.camera_rig.snap()
+	w.smithy.mine(rock, w.player)
+	await _seconds(1.1)
+	await shot("20_mining")
+	await _seconds(2.0)
+	InventoryManager.add_item("tin_ore")
+	InventoryManager.add_item("bronze_bar", 2)
+	await _frames(5)
+	w.player.teleport(w.smithy.anvil.front, PI * 0.5)
+	w.camera_rig.set_view(-1.3, 30.0, 6.5)
+	w.camera_rig.snap()
+	w.smithy.use_station(w.smithy.anvil, w.player)
+	await _frames(10)
+	await shot("21_anvil_panel")
+	(get_tree().get_first_node_in_group("modal_panel") as ModalPanel).close()
+	w.smithy.craft("bronze_dagger", 1, w.smithy.anvil)
+	await _seconds(1.3)
+	await shot("22_smithing")
+	await _seconds(1.5)
 
 
 func shot(shot_name: String) -> void:

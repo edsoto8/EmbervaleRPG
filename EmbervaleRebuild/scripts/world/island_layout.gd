@@ -56,6 +56,20 @@ const SIGNPOST := Vector2(3.4, 26.4)
 const GARDEN := Vector2(-15.5, 31.5)
 const GARDEN_SIZE := Vector2(5.0, 4.0)
 
+## Milestone 7: Brann's open-air smithy east of the plaza (open towards the west) and the quarry
+## north-east of the gate path.
+const SMITHY := Vector2(20.0, 20.5)
+const SMITHY_RADIUS := 4.2
+const FURNACE := Vector2(22.1, 18.9)
+const ANVIL := Vector2(19.3, 21.3)
+const SMITH := Vector2(20.2, 22.5)        # Brann stands beside the anvil
+const QUARRY := Vector2(7.0, -31.0)
+const QUARRY_RADIUS := 4.6
+## Rocks on a ring around the quarry floor, open to the south-west where the path arrives.
+const MINING_ROCKS := [["copper", -150.0], ["tin", -112.0], ["copper", -74.0], ["tin", -36.0],
+		["copper", 2.0], ["tin", 40.0], ["iron", 78.0], ["iron", 116.0]]
+const MINING_RING := 3.25
+
 ## Path polylines (XZ), village to every region.
 const PATHS := [
 	[Vector2(4, 41), Vector2(3.2, 34), Vector2(1.2, 24.5)],                       # dock -> village
@@ -63,6 +77,8 @@ const PATHS := [
 	[Vector2(-6, 17.5), Vector2(-16, 17), Vector2(-22, 8), Vector2(-23.6, -5)],   # village -> forest
 	[Vector2(1.5, 11.6), Vector2(6, -2), Vector2(13, -10.5), Vector2(19, -14)],   # village -> pond
 	[Vector2(-0.8, 11.6), Vector2(-2.2, 0), Vector2(-2.2, -20), Vector2(0, -37)], # village -> gate
+	[Vector2(6.0, 19.2), Vector2(11.5, 19.7), Vector2(16.8, 20.4)],               # plaza -> smithy
+	[Vector2(-1.6, -25.5), Vector2(3.4, -29.2)],                                   # gate path -> quarry
 ]
 const PATH_HALF_WIDTH := 1.25
 
@@ -127,3 +143,17 @@ static func on_dock(p: Vector2, margin: float = 0.0) -> bool:
 static func yaw_towards(from: Vector2, to: Vector2) -> float:
 	var d := to - from
 	return atan2(-d.x, -d.y)
+
+
+static func in_smithy(p: Vector2, margin: float = 0.0) -> bool:
+	return p.distance_to(SMITHY) <= SMITHY_RADIUS + margin
+
+
+static func in_quarry(p: Vector2, margin: float = 0.0) -> bool:
+	return p.distance_to(QUARRY) <= QUARRY_RADIUS + margin
+
+
+## World XZ of mining rock `k` (angles in degrees, atan2(z, x) convention).
+static func mining_rock_position(k: int) -> Vector2:
+	var a := deg_to_rad(float(MINING_ROCKS[k][1]))
+	return QUARRY + Vector2(cos(a), sin(a)) * MINING_RING

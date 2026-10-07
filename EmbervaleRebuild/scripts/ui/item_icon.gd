@@ -68,3 +68,43 @@ func _draw() -> void:
 			draw_line(p.call(0.26, 0.84), p.call(0.66, 0.2), Color("7d5634"), 0.07 * m)
 			draw_colored_polygon(PackedVector2Array([p.call(0.56, 0.18), p.call(0.82, 0.12), p.call(0.86, 0.42),
 					p.call(0.62, 0.36)]), c)
+		"ore":
+			var fleck: Color = info.get("fleck", c.lightened(0.4))
+			draw_colored_polygon(PackedVector2Array([p.call(0.18, 0.62), p.call(0.3, 0.34), p.call(0.56, 0.24),
+					p.call(0.8, 0.4), p.call(0.82, 0.66), p.call(0.56, 0.8), p.call(0.3, 0.78)]), c)
+			draw_colored_polygon(PackedVector2Array([p.call(0.3, 0.34), p.call(0.56, 0.24), p.call(0.8, 0.4),
+					p.call(0.52, 0.44)]), c.lightened(0.15))
+			for f in [Vector2(0.38, 0.52), Vector2(0.6, 0.6), Vector2(0.5, 0.36), Vector2(0.68, 0.46)]:
+				draw_circle(p.call(f.x, f.y), 0.045 * m, fleck)
+		"bar":
+			draw_colored_polygon(PackedVector2Array([p.call(0.14, 0.62), p.call(0.3, 0.42), p.call(0.86, 0.42),
+					p.call(0.76, 0.62)]), c.lightened(0.25))
+			draw_colored_polygon(PackedVector2Array([p.call(0.14, 0.62), p.call(0.76, 0.62), p.call(0.76, 0.74),
+					p.call(0.14, 0.74)]), c)
+			draw_colored_polygon(PackedVector2Array([p.call(0.76, 0.62), p.call(0.86, 0.42), p.call(0.86, 0.54),
+					p.call(0.76, 0.74)]), dark)
+		"dagger":
+			draw_colored_polygon(PackedVector2Array([p.call(0.4, 0.62), p.call(0.76, 0.2), p.call(0.5, 0.68)]), c)
+			draw_line(p.call(0.32, 0.56), p.call(0.5, 0.74), Color("6b4a2b"), 0.07 * m)
+			draw_line(p.call(0.22, 0.82), p.call(0.4, 0.66), Color("4a3424"), 0.08 * m)
+		"helm":
+			var pts := PackedVector2Array()
+			for k in 11:
+				var a := PI + k * PI / 10.0
+				pts.append(p.call(0.5 + cos(a) * 0.32, 0.6 + sin(a) * 0.36))
+			pts.append(p.call(0.82, 0.74))
+			pts.append(p.call(0.18, 0.74))
+			draw_colored_polygon(pts, c)
+			draw_rect(Rect2(p.call(0.46, 0.34), Vector2(0.08, 0.36) * m), c.lightened(0.25))
+			draw_line(p.call(0.18, 0.72), p.call(0.82, 0.72), dark, 0.06 * m)
+		"hammer":
+			draw_line(p.call(0.28, 0.84), p.call(0.6, 0.34), Color("7d5634"), 0.07 * m)
+			draw_colored_polygon(PackedVector2Array([p.call(0.4, 0.3), p.call(0.66, 0.14), p.call(0.8, 0.36),
+					p.call(0.54, 0.52)]), c)
+		"pickaxe":
+			draw_line(p.call(0.3, 0.86), p.call(0.56, 0.3), Color("7d5634"), 0.07 * m)
+			var head := PackedVector2Array()
+			for k in 9:
+				var a := -PI * 0.92 + k * PI * 0.105
+				head.append(p.call(0.56 + cos(a) * 0.36, 0.5 + sin(a) * 0.3))
+			draw_polyline(head, c, 0.08 * m, true)

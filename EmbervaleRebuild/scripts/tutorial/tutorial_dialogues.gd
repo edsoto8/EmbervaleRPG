@@ -81,7 +81,7 @@ static func maelis(stage: String, ctx: Dictionary) -> Dictionary:
 static func marla(tutorial_complete: bool) -> Dictionary:
 	if tutorial_complete:
 		return {"start": "a", "nodes": {
-			"a": _line("marla", "Browse my stall when you like: I buy logs and fish, and I've a fine steel axe for sale."),
+			"a": _line("marla", "Browse my stall when you like: I buy logs, fish, ore and smithing goods, and I've a fine steel axe and pickaxe for sale."),
 		}}
 	return {"start": "a", "nodes": {
 		"a": _line("marla", "Welcome, dear! My stall opens to adventurers once Maelis has finished your training.", "b"),
@@ -121,3 +121,60 @@ static func tobin(ctx: Dictionary) -> Dictionary:
 		nodes["a"] = _line("tobin", tip, "trout")
 		nodes["trout"] = _line("tobin", "With your skill, you'll start pulling trout from these waters now and then. They cook up lovely.")
 	return {"start": "a", "nodes": nodes}
+
+
+## Brann the blacksmith and "The Smith's Apprentice" (Milestone 7). Context: name, tutorial_complete,
+## stage (0..2), needs_tools, has_dagger, next_step (tracker hint), accept (Callable -> bool: starts the
+## quest and hands over tools), give_tools (Callable -> bool), hand_in (Callable -> bool).
+static func brann(ctx: Dictionary) -> Dictionary:
+	var name: String = ctx.get("name", "adventurer")
+	if not ctx.get("tutorial_complete", false):
+		return {"start": "a", "nodes": {
+			"a": _line("brann", "Mind the sparks. I've no time for greenhorns; finish Maelis's training first, then we'll talk."),
+		}}
+	var stage: int = ctx.get("stage", 0)
+	var give: Callable = ctx.get("give_tools", Callable())
+	var tools_nodes := {
+		"tools": {"speaker": "brann", "text": "", "next": func() -> String: return "tools_given" if give.call() else "tools_full"},
+		"tools_full": _line("brann", "Your pack's stuffed. Clear some room and come back for the pickaxe and hammer."),
+	}
+	if stage == 0:
+		var accept: Callable = ctx.get("accept", Callable())
+		var nodes := {
+			"a": _line("brann", "Name's Brann. I keep this forge, and every tool on the island passes over my anvil.", "ask"),
+			"ask": {"speaker": "brann", "text": "My last apprentice sailed off with the boat. Fancy learning the trade?", "choices": [
+				{"text": "I'll learn. What do I do?", "next": "task"},
+				{"text": "What can I make here?", "next": "about"},
+				{"text": "Not right now.", "next": "later"},
+			]},
+			"about": _line("brann", "Smelt ore into bars at the furnace, then hammer bars into daggers, helms and pickaxes on the anvil. Marla pays fair for good work.", "ask"),
+			"task": _line("brann", "Prove your hands. Mine copper and tin in the quarry, north-east of the path to the gate. Smelt them into a bronze bar here, then smith me a bronze dagger.", "accept"),
+			"accept": {"speaker": "brann", "text": "", "next": func() -> String: return "given" if accept.call() else "accept_full"},
+			"given": _line("brann", "Take this pickaxe and hammer. Click a rock with ore in it to mine it. Bring me that dagger, %s." % name),
+			"accept_full": _line("brann", "I'd hand you a pickaxe and hammer, but your pack's full. Make some room and talk to me again."),
+			"later": _line("brann", "Suit yourself. The forge doesn't go anywhere."),
+		}
+		return {"start": "a", "nodes": nodes}
+	if stage == 1:
+		var hand_in: Callable = ctx.get("hand_in", Callable())
+		var nodes := tools_nodes.duplicate()
+		if ctx.get("has_dagger", false):
+			nodes["a"] = _line("brann", "Let's see it, then.", "check")
+			nodes["check"] = {"speaker": "brann", "text": "", "next": func() -> String: return "done" if hand_in.call() else "no_room"}
+			nodes["done"] = _line("brann", "Ha! Edge is true and the tang won't snap. That's honest work, %s." % name, "reward")
+			nodes["reward"] = _line("brann", "Here's your pay. My furnace and anvil are yours whenever you need them. Iron's in the quarry too, once you're handy enough with a pick.")
+			nodes["no_room"] = _line("brann", "I'd pay you, but you couldn't carry the coins. Lighten your pack first.")
+			return {"start": "a", "nodes": nodes}
+		if ctx.get("needs_tools", false):
+			nodes["a"] = _line("brann", "Lost your tools already? Here, take these.", "tools")
+			nodes["tools_given"] = _line("brann", ctx.get("next_step", "Bring me a bronze dagger."))
+			return {"start": "a", "nodes": nodes}
+		nodes["a"] = _line("brann", "Still waiting on that dagger. " + ctx.get("next_step", ""))
+		return {"start": "a", "nodes": nodes}
+	var after := tools_nodes.duplicate()
+	if ctx.get("needs_tools", false):
+		after["a"] = _line("brann", "Need a pickaxe or hammer? I keep spares.", "tools")
+		after["tools_given"] = _line("brann", "There. Don't lose these ones.")
+		return {"start": "a", "nodes": after}
+	after["a"] = _line("brann", "Back again, %s? Furnace is hot. Iron needs Mining 8 to dig and Smithing 8 to smelt, and it's worth the trouble." % name)
+	return {"start": "a", "nodes": after}

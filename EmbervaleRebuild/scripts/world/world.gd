@@ -16,6 +16,7 @@ var is_ready := false
 var interaction: InteractionSystem
 var director: TutorialDirector
 var skills: SkillsDirector
+var smithy: SmithyDirector
 var hud: GameHUD
 var hover_ring: HoverHighlight
 var dust: CPUParticles3D
@@ -110,7 +111,7 @@ func surface_at(p: Vector3) -> String:
 	if IslandLayout.on_dock(Vector2(p.x, p.z)):
 		return "wood"
 	match island.terrain.tile_at(p.x, p.z):
-		IslandTerrain.Tile.PLAZA, IslandTerrain.Tile.COURTYARD:
+		IslandTerrain.Tile.PLAZA, IslandTerrain.Tile.COURTYARD, IslandTerrain.Tile.GRAVEL:
 			return "stone"
 		IslandTerrain.Tile.SAND, IslandTerrain.Tile.PATH, IslandTerrain.Tile.MUD:
 			return "sand"
@@ -152,6 +153,10 @@ func _build_systems(hide_hud: bool) -> void:
 	skills.name = "SkillsDirector"
 	add_child(skills)
 	skills.setup(self)
+	smithy = SmithyDirector.new()
+	smithy.name = "SmithyDirector"
+	add_child(smithy)
+	smithy.setup(self)
 
 
 ## True once the player stands in the world for real (navigation ready, intro over).

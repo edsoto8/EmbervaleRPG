@@ -39,6 +39,7 @@ var _skill_rng := RandomNumberGenerator.new()
 ## Oak and willow trees (Milestone 6), also listed in choppable_trees.
 var oak_trees: Array = []
 var willow_trees: Array = []
+var mining_rocks: Array[MiningRock] = []
 var _props: Node3D
 var _decor: Node3D
 var _grass_core: Node3D
@@ -101,6 +102,8 @@ func generate() -> void:
 	_stage("forest", _build_forest)
 	_stage("pond", _build_pond)
 	_stage("gate", _build_gate)
+	_stage("smithy", _build_smithy)
+	_stage("quarry", _build_quarry)
 	_stage("scatter", _build_scatter)
 	_stage("skill_trees", _build_skill_trees)
 	_stage("ground_cover", _build_ground_cover)
@@ -171,7 +174,10 @@ func _build_boundaries() -> void:
 		var a := TAU * k / n
 		var dir := Vector2(cos(a), sin(a))
 		var r := 30.0
-		while r < 62.0 and terrain.height_at(dir.x * r, dir.y * r) > WATER_LAND_OFFSET:
+		# The pond is inland water, not shore: march past it (otherwise walls run from the pond to the
+		# coast and wall off the land behind it).
+		while r < 62.0 and (terrain.height_at(dir.x * r, dir.y * r) > WATER_LAND_OFFSET \
+				or (dir * r).distance_to(IslandLayout.POND) < IslandLayout.POND_RADIUS + 3.0):
 			r += 0.25
 		_shoreline.append(dir * (r - 0.35))
 	var gap_west := Vector2.ZERO
@@ -768,13 +774,164 @@ func _build_gate() -> void:
 		_reserve(Vector2(x, IslandLayout.GATE.y), 2.0)
 
 
+# --- Milestone 7: smithy and quarry ---------------------------------------------------------------
+
+## Brann's open-air forge, open towards the plaza (west). Static parts are batched with the island;
+## the furnace glow, smoke and the interactions are added by SmithyDirector after batching.
+func _build_smithy() -> void:
+	var c := IslandLayout.SMITHY
+	var smithy := _node_at(_props, "Smithy", c)
+	var loc := func(p: Vector2, y: float) -> Vector3: return Vector3(p.x - c.x, y, p.y - c.y)
+	var stone := Color("8d8a82")
+	var dark_stone := Color("6f6c66")
+	var wood := Color("6b4a2b")
+	var plank := Color("8a6440")
+	var iron := Color("4a4a4c")
+	# Stone floor slab under the lean-to (flush, walkable).
+	PropFactory.box(smithy, Vector3(3.4, 0.06, 6.6), loc.call(Vector2(21.9, 20.5), 0.0), Color("7d776d"))
+	# Back wall (east) with a cap, and low side walls closing the lean-to.
+	PropFactory.box(smithy, Vector3(0.5, 2.8, 6.8), loc.call(Vector2(23.55, 20.5), 1.4), stone)
+	PropFactory.box(smithy, Vector3(0.6, 0.18, 6.9), loc.call(Vector2(23.55, 20.5), 2.85), dark_stone)
+	for z in [17.15, 23.85]:
+		PropFactory.box(smithy, Vector3(2.9, 1.0, 0.4), loc.call(Vector2(22.0, z), 0.5), stone)
+		PropFactory.box(smithy, Vector3(3.0, 0.12, 0.5), loc.call(Vector2(22.0, z), 1.04), dark_stone)
+	var walls := PropFactory.solid(smithy, "Walls", Vector3.ZERO, Layers.OBSTACLES | Layers.CAMERA_BLOCKERS)
+	PropFactory.box_shape(walls, Vector3(0.6, 3.0, 6.9), loc.call(Vector2(23.55, 20.5), 1.5))
+	for z in [17.15, 23.85]:
+		PropFactory.box_shape(walls, Vector3(3.0, 1.3, 0.5), loc.call(Vector2(22.0, z), 0.65))
+	# Lean-to roof on two front posts, sloping down towards the plaza.
+	var posts := PropFactory.solid(smithy, "Posts", Vector3.ZERO)
+	for z in [17.45, 23.55]:
+		PropFactory.box(smithy, Vector3(0.24, 2.9, 0.24), loc.call(Vector2(20.55, z), 1.45), wood)
+		PropFactory.cylinder_shape(posts, 0.2, 3.0, loc.call(Vector2(20.55, z), 1.5))
+	PropFactory.box(smithy, Vector3(0.22, 0.24, 6.4), loc.call(Vector2(20.55, 20.5), 2.88), wood)
+	var roof := Node3D.new()
+	roof.position = loc.call(Vector2(22.05, 20.5), 3.2)
+	roof.rotation.z = 0.2
+	smithy.add_child(roof)
+	PropFactory.box(roof, Vector3(3.9, 0.12, 7.2), Vector3.ZERO, Color("6a4a3a"))
+	for k in 7:
+		PropFactory.box(roof, Vector3(3.95, 0.05, 0.08), Vector3(0, 0.08, -3.0 + k * 1.0), Color("57392c"))
+	# Furnace: a stone block with a chimney through the roof (glowing mouth faces west).
+	var f := IslandLayout.FURNACE
+	PropFactory.box(smithy, Vector3(1.8, 1.7, 1.8), loc.call(f, 0.85), Color("7b7770"))
+	PropFactory.box(smithy, Vector3(1.95, 0.2, 1.95), loc.call(f, 1.75), dark_stone)
+	PropFactory.box(smithy, Vector3(0.9, 0.12, 0.95), loc.call(f + Vector2(-0.95, 0), 0.95), dark_stone)
+	PropFactory.box(smithy, Vector3(0.9, 3.0, 0.9), loc.call(f + Vector2(0.3, 0), 3.3), Color("7f7b73"))
+	PropFactory.box(smithy, Vector3(1.05, 0.2, 1.05), loc.call(f + Vector2(0.3, 0), 4.85), dark_stone)
+	for k in 4:
+		PropFactory.box(smithy, Vector3(0.05, 0.06, 1.82), loc.call(f, 0.3 + k * 0.42), Color("67635c"))
+	var furnace := PropFactory.solid(smithy, "Furnace", Vector3.ZERO, Layers.OBSTACLES | Layers.CAMERA_BLOCKERS)
+	PropFactory.box_shape(furnace, Vector3(1.9, 2.0, 1.9), loc.call(f, 1.0))
+	_occlude(f, 1.8, 0.45)
+	# Coal heap and bellows beside the furnace.
+	PropFactory.sphere(smithy, 0.45, loc.call(f + Vector2(0.4, 1.45), 0.05), Color("2c2a28"), Vector3(1.3, 0.55, 1.0), 6, 3)
+	PropFactory.box(smithy, Vector3(0.7, 0.18, 0.5), loc.call(f + Vector2(-0.3, -1.25), 0.5), Color("5a3b22"), Vector3(0, 0, 0.2))
+	PropFactory.box(smithy, Vector3(0.5, 0.06, 0.45), loc.call(f + Vector2(-0.3, -1.25), 0.62), Color("8a6440"), Vector3(0, 0, 0.35))
+	# Anvil on a stump.
+	var a := IslandLayout.ANVIL
+	PropFactory.cylinder(smithy, 0.36, 0.42, 0.55, loc.call(a, 0.27), Color("5e4126"), 8)
+	PropFactory.box(smithy, Vector3(0.36, 0.2, 0.26), loc.call(a, 0.64), iron)
+	PropFactory.box(smithy, Vector3(0.2, 0.18, 0.18), loc.call(a, 0.82), iron)
+	PropFactory.box(smithy, Vector3(0.7, 0.14, 0.28), loc.call(a, 0.97), Color("57585a"))
+	PropFactory.prism(smithy, Vector3(0.26, 0.3, 0.14), loc.call(a + Vector2(0.48, 0), 0.97), Color("57585a"), Vector3(0, 0, -PI * 0.5))
+	var anvil := PropFactory.solid(smithy, "Anvil", Vector3.ZERO)
+	PropFactory.cylinder_shape(anvil, 0.5, 1.1, loc.call(a, 0.55))
+	# Quenching trough against the back corner.
+	var t := Vector2(22.6, 22.7)
+	PropFactory.box(smithy, Vector3(0.75, 0.6, 1.4), loc.call(t, 0.3), plank)
+	PropFactory.box(smithy, Vector3(0.6, 0.02, 1.25), loc.call(t, 0.58), Color("3f6e8e"))
+	var trough := PropFactory.solid(smithy, "Trough", Vector3.ZERO)
+	PropFactory.box_shape(trough, Vector3(0.85, 1.1, 1.5), loc.call(t, 0.55))
+	# Tool rack on the back wall: tongs, hammers and a finished blade.
+	PropFactory.box(smithy, Vector3(0.08, 0.1, 1.8), loc.call(Vector2(23.25, 20.9), 1.9), wood)
+	for k in 5:
+		var z := 20.1 + k * 0.4
+		var col := iron if k % 2 == 0 else Color("b0743a")
+		PropFactory.box(smithy, Vector3(0.05, 0.62, 0.05), loc.call(Vector2(23.22, z), 1.55), Color("7d5634"))
+		PropFactory.box(smithy, Vector3(0.08, 0.12, 0.22), loc.call(Vector2(23.2, z), 1.25), col)
+	# Woodpile and a crate of ore by the yard's north edge.
+	for q in 6:
+		PropFactory.cylinder(smithy, 0.11, 0.11, 1.0, loc.call(Vector2(19.0 + (q % 3) * 0.24, 17.3), 0.12 + (q / 3) * 0.21),
+				Color("8a6440"), 6, Vector3(PI * 0.5, 0, 0))
+	var pile := PropFactory.solid(smithy, "Woodpile", Vector3.ZERO)
+	PropFactory.box_shape(pile, Vector3(1.0, 1.1, 1.2), loc.call(Vector2(19.24, 17.3), 0.55))
+	PropFactory.box(smithy, Vector3(0.8, 0.5, 0.6), loc.call(Vector2(18.2, 23.4), 0.25), Color("9a7448"))
+	for q in 4:
+		PropFactory.sphere(smithy, 0.14, loc.call(Vector2(18.0 + (q % 2) * 0.3, 23.3 + (q / 2) * 0.2), 0.55),
+				Color("8a6a52") if q % 2 == 0 else Color("8a8780"), Vector3(1, 0.7, 1), 5, 3)
+	var crate := PropFactory.solid(smithy, "Crate", Vector3.ZERO)
+	PropFactory.box_shape(crate, Vector3(0.9, 1.1, 0.7), loc.call(Vector2(18.2, 23.4), 0.55))
+	# Hanging sign on the north post.
+	PropFactory.box(smithy, Vector3(0.7, 0.06, 0.06), loc.call(Vector2(20.2, 17.45), 2.55), wood)
+	PropFactory.box(smithy, Vector3(0.05, 0.45, 0.6), loc.call(Vector2(19.95, 17.45), 2.2), plank)
+	PropFactory.box(smithy, Vector3(0.06, 0.12, 0.34), loc.call(Vector2(19.92, 17.45), 2.22), iron)
+	_reserve(c, IslandLayout.SMITHY_RADIUS + 0.8)
+	_occlude(Vector2(23.4, 20.5), 2.0, 0.4)
+
+
+## Quarry floor backed by boulders, with eight mining rocks (kept out of the batches: they toggle).
+## Uses position hashes, never `_rng`, so props placed afterwards don't move.
+func _build_quarry() -> void:
+	var q := IslandLayout.QUARRY
+	var quarry := _node_at(_props, "Quarry", q)
+	quarry.position.y = 0.0
+	var k := 0
+	# Boulders back the quarry on its north side only, so the land between it, the pond and the gate
+	# stays connected.
+	var ang := -170.0
+	while ang <= -10.0:
+		var h := IslandTerrain._hash01(k * 31 + 7, 977)
+		var a := deg_to_rad(ang)
+		var r := 5.7 + h * 0.5
+		var p := q + Vector2(cos(a), sin(a)) * r
+		var size := 0.95 + 0.45 * h
+		var grey := Color("8b8a84").lerp(Color("74726b"), IslandTerrain._hash01(k * 17, 31))
+		var b := _node_at(quarry, "Boulder", p, h * TAU, -0.15)
+		b.position -= quarry.position
+		PropFactory.sphere(b, size, Vector3(0, size * 0.55, 0), grey, Vector3(1.25, 0.95, 1.0), 7, 4)
+		PropFactory.sphere(b, size * 0.62, Vector3(size * 0.62, size * 0.35, size * 0.25), grey.darkened(0.08), Vector3(1, 0.75, 1), 6, 3)
+		PropFactory.sphere(b, size * 0.45, Vector3(-size * 0.4, size * 1.15, -size * 0.1), grey.lightened(0.05), Vector3(1, 0.7, 1), 5, 3)
+		var body := PropFactory.solid(b, "Body", Vector3.ZERO, Layers.OBSTACLES | Layers.CAMERA_BLOCKERS)
+		PropFactory.cylinder_shape(body, size * 1.15, maxf(1.4, size * 1.7), Vector3(0, 0.7, 0))
+		_occlude(p, size * 1.6, 0.35)
+		k += 1
+		ang += 20.0
+	# Ore cart by the entrance, on short rails.
+	var cart_p := q + Vector2(-2.3, -3.0).rotated(0.0)
+	var cart := _node_at(quarry, "OreCart", cart_p, 0.6)
+	cart.position -= quarry.position
+	PropFactory.box(cart, Vector3(0.9, 0.5, 1.3), Vector3(0, 0.55, 0), Color("6b4a2b"))
+	PropFactory.box(cart, Vector3(0.95, 0.06, 1.35), Vector3(0, 0.82, 0), Color("4a4a4c"))
+	for sx in [-0.48, 0.48]:
+		for sz in [-0.42, 0.42]:
+			PropFactory.cylinder(cart, 0.17, 0.17, 0.08, Vector3(sx, 0.2, sz), Color("3a3a3c"), 8, Vector3(0, 0, PI * 0.5))
+	for s in 5:
+		PropFactory.sphere(cart, 0.17, Vector3(-0.25 + (s % 3) * 0.25, 0.86, -0.3 + (s / 3) * 0.45), Color("8a6a52").lerp(Color("8a8780"), s % 2), Vector3(1, 0.7, 1), 5, 3)
+	var cart_body := PropFactory.solid(cart, "Body", Vector3.ZERO)
+	PropFactory.box_shape(cart_body, Vector3(1.0, 1.2, 1.4), Vector3(0, 0.6, 0))
+	_reserve(cart_p, 1.3)
+	# Mining rocks.
+	for i in IslandLayout.MINING_ROCKS.size():
+		var p := IslandLayout.mining_rock_position(i)
+		var rock := MiningRock.new(IslandLayout.MINING_ROCKS[i][0])
+		rock.name = "MiningRock%d" % i
+		rock.position = ground_point(p)
+		rock.rotation.y = IslandTerrain._hash01(i * 13, 5) * TAU
+		_props.add_child(rock)
+		mining_rocks.append(rock)
+		_keep.append(rock)
+		_occlude(p, 1.4, 0.3)
+	_reserve(q, IslandLayout.QUARRY_RADIUS + 2.4)
+
+
 ## Free placement test for scattered props: on land, off paths and out of every reserved area.
 func _can_place(p: Vector2, radius: float) -> bool:
 	if not terrain.is_land(p.x, p.y):
 		return false
 	var t := terrain.tile_at(p.x, p.y)
 	if t == IslandTerrain.Tile.SAND or t == IslandTerrain.Tile.PATH or t == IslandTerrain.Tile.PLAZA \
-			or t == IslandTerrain.Tile.COURTYARD or t == IslandTerrain.Tile.MUD:
+			or t == IslandTerrain.Tile.COURTYARD or t == IslandTerrain.Tile.MUD or t == IslandTerrain.Tile.GRAVEL:
 		return false
 	if IslandLayout.distance_to_paths(p) < IslandLayout.PATH_HALF_WIDTH + radius + 0.6:
 		return false
@@ -932,6 +1089,7 @@ func _build_extra_cover() -> void:
 				for sgn in [-1.0, 1.0]:
 					var sp: Vector2 = a + dir * d + side * sgn * (IslandLayout.PATH_HALF_WIDTH + 0.25)
 					if IslandLayout.in_plaza(sp, 0.6) or IslandLayout.in_courtyard(sp, 0.6) or not terrain.is_land(sp.x, sp.y) \
+							or IslandLayout.in_smithy(sp, 0.8) or IslandLayout.in_quarry(sp, 1.0) \
 							or IslandLayout.on_dock(sp, 1.0) or _near_reserved_solid(sp):
 						continue
 					var stone := _node_at(_decor, "BorderStone", sp, _cover_rng.randf() * TAU, -0.05)
@@ -1078,6 +1236,11 @@ func _build_landmarks() -> void:
 		"npc_fisher": ground_point(IslandLayout.FISHER),
 		"npc_wanderer": ground_point(IslandLayout.WANDERER_HOME),
 		"training_dummy": ground_point(IslandLayout.DUMMIES[0]),
+		"smithy": ground_point(IslandLayout.SMITHY + Vector2(-2.6, 0.0)),
+		"furnace": ground_point(IslandLayout.FURNACE + Vector2(-1.8, 0.0)),
+		"anvil": ground_point(IslandLayout.ANVIL + Vector2(-1.1, 0.0)),
+		"npc_smith": ground_point(IslandLayout.SMITH),
+		"quarry": ground_point(IslandLayout.QUARRY),
 	}
 	if oak_trees.size() > 0:
 		landmarks["oak_tree"] = oak_trees[0].position

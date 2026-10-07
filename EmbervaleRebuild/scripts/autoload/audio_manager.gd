@@ -50,6 +50,8 @@ func _ready() -> void:
 	QuestManager.tutorial_completed.connect(func() -> void: play("fanfare"))
 	QuestManager.all_tasks_completed.connect(func() -> void: play("fanfare"))
 	QuestManager.reward_paid.connect(func(_id: String) -> void: play("coins"))
+	QuestManager.quest_started.connect(func(_id: String) -> void: play("jingle"))
+	QuestManager.quest_completed.connect(func(_id: String) -> void: play("fanfare"))
 	DialogueManager.line_shown.connect(func(_n: Dictionary) -> void: play("dialogue", -6.0))
 	var skills := get_node_or_null("/root/SkillsManager")
 	if skills:
@@ -149,6 +151,8 @@ func _stream(sound: String) -> AudioStreamWAV:
 		"coins": s = Synth.coins()
 		"swing": s = Synth.swing(_rng)
 		"hit": s = Synth.hit(_rng)
+		"mine": s = Synth.mine(_rng)
+		"anvil": s = Synth.anvil()
 		_:
 			if sound.begins_with("step_"):
 				s = Synth.footstep(sound.trim_prefix("step_").get_slice("_", 0), _rng)

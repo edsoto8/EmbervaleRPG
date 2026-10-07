@@ -12,6 +12,8 @@ const SUITES := {
 	"skills": "res://tests/suites/skills_suite.gd",
 	"playthrough": "res://tests/suites/playthrough_suite.gd",
 	"skills_playthrough": "res://tests/suites/skills_playthrough_suite.gd",
+	"smithing": "res://tests/suites/smithing_suite.gd",
+	"quest_playthrough": "res://tests/suites/quest_playthrough_suite.gd",
 }
 
 

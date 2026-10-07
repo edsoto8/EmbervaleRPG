@@ -15,6 +15,7 @@ specifications. Verification results are recorded in
 - [SPEC_SAVE.md](SPEC_SAVE.md): authoritative schema, import and recovery policy.
 - [SPEC_GRAPHICS.md](SPEC_GRAPHICS.md): M5 additions.
 - [SPEC_SKILLS.md](SPEC_SKILLS.md): M6 additions and exact balance.
+- [SPEC_SMITHING.md](SPEC_SMITHING.md): M7 mining, smithing and the first quest.
 - `CLAUDE.md`: development procedures and historical implementation notes.
 
 ## Milestone 0: Rebuild foundation
@@ -38,6 +39,7 @@ are required; do not invoke future suites that have not been built yet.
 | M4 | Previous + polish + no-teleport playthrough from menu through tutorial and Continue | Hear audio, inspect motion, performance report, Windows export/runtime smoke; preserve M4 screenshots |
 | M5 | Previous + graphics: live presets, persistence, water/wind/batching, cover | Same-view M4/M5 comparisons, video/live motion, perf on every preset |
 | M6 | Previous + skills + no-teleport skills_playthrough; version 1 import, pending rewards, transactions and recovery | Complete all ten tasks, record pacing/perf and native Windows release smoke |
+| M7 | Previous + smithing + no-teleport quest_playthrough; quest save validation, tool recovery, hand-in transaction | Finish Brann's quest through the UI, inspect smithy/quarry views, record perf on every preset |
 
 Playthroughs use input/UI, not teleportation, reward injection or direct progress setters. Deterministic
 rolls are allowed in the skills playthrough. Skills unit/integration checks cover the full task list;
@@ -195,3 +197,17 @@ Spec: [SPEC_SKILLS.md](SPEC_SKILLS.md).
 - [x] S10 Exact balance formulas, activity cancellation, capacity transactions and gear recovery
 - [x] Full task/reward coverage, including tutorial-time credit and repeated Continue without duplicate grants
 - [x] Skills suite + no-teleport skills playthrough; hard perf limit ≤ 450 draw calls on every preset (≤ 260 optimization target)
+
+## Milestone 7: Mining, Smithing and the first quest
+
+Spec: [SPEC_SMITHING.md](SPEC_SMITHING.md).
+
+- [ ] K1 Mining and Smithing skills in `SkillData`/`SkillsManager`; Skills panel fits seven skills
+- [ ] K2 Quarry with copper, tin and iron rocks: pickaxe and level checks, one ore per swing, depletion and respawn
+- [ ] K3 Smithy (furnace, anvil, Brann) east of the plaza; crafting panel; smelting with iron failures; smithing recipes
+- [ ] K4 "The Smith's Apprentice": stages, checklist flags, tool hand-out and recovery, hand-in transaction, banner and fanfare
+- [ ] K5 New items and icons; Marla sells the steel pickaxe and hammer and buys the new goods
+- [ ] K6 Pickaxe/hammer animations with impacts, chips/sparks, furnace glow and smoke, sounds, minimap marks
+- [ ] K7 `quest.quests` save key with validation and defaults; checkpoints on quest events
+- [ ] Smithing suite + no-teleport quest playthrough; every earlier suite still passes
+- [ ] Perf: ≤ 260 draw calls in every view and preset, warm generation < 1.5 s

@@ -257,7 +257,7 @@ func _invalid(message: String) -> Dictionary:
 
 func _validate_quest(q: Variant) -> Dictionary:
 	var out := {"index": 0, "wasd_distance": 0.0, "marker_reached": false, "inventory_opened": false,
-			"logs_inspected": false, "tasks": [], "pending_task_rewards": []}
+			"logs_inspected": false, "tasks": [], "pending_task_rewards": [], "quests": {}}
 	if q == null:
 		return {"data": out}
 	if not q is Dictionary:
@@ -281,6 +281,23 @@ func _validate_quest(q: Variant) -> Dictionary:
 		for t in qd.pending_task_rewards:
 			if t is String and t in out.tasks and not t in out.pending_task_rewards:
 				out.pending_task_rewards.append(t)
+	# Quests (Milestone 7): unknown ids ignored, stage clamped, only known flags kept once.
+	if qd.has("quests"):
+		if not qd.quests is Dictionary:
+			return {"error": "The save file's quest list is malformed."}
+		for id in qd.quests:
+			var e: Variant = qd.quests[id]
+			if not id is String or not QuestData.is_known(id) or not e is Dictionary:
+				continue
+			var entry := {"stage": 0, "flags": []}
+			if _is_finite_number(e.get("stage")):
+				entry.stage = clampi(int(floor(float(e.stage))), 0, QuestData.final_stage(id))
+			if e.get("flags") is Array:
+				var known := QuestData.flag_ids(id)
+				for f in e.flags:
+					if f is String and f in known and not f in entry.flags:
+						entry.flags.append(f)
+			out.quests[id] = entry
 	return {"data": out}
 
 

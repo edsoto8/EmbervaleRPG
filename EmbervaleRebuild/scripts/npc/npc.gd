@@ -47,6 +47,7 @@ func _ready() -> void:
 	model.name = "Model"
 	model.scale = Vector3.ONE * model_scale
 	add_child(model)
+	model.set_reduced_shadows(true)
 	model.face_yaw(home_yaw)
 	var area := StaticBody3D.new()
 	area.name = "ClickBody"

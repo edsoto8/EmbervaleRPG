@@ -76,6 +76,10 @@ func _connect_managers() -> void:
 			quest.task_completed.connect(func(_id: String) -> void: request_save())
 		if quest.has_signal("reward_paid"):
 			quest.reward_paid.connect(func(_id: String) -> void: request_save())
+		if quest.has_signal("quest_started"):
+			quest.quest_started.connect(func(_id: String) -> void: request_save())
+			quest.quest_progress.connect(func(_id: String, _f: String) -> void: request_save())
+			quest.quest_completed.connect(func(_id: String) -> void: request_save())
 
 
 func ui_layer() -> CanvasLayer:
@@ -181,7 +185,7 @@ func new_game_data(char_name: String, appearance: Dictionary) -> Dictionary:
 		"character": {"name": char_name, "appearance": Appearance.sanitize(appearance)},
 		"stage": "intro",
 		"quest": {"index": 0, "wasd_distance": 0, "marker_reached": false, "inventory_opened": false,
-				"logs_inspected": false, "tasks": [], "pending_task_rewards": []},
+				"logs_inspected": false, "tasks": [], "pending_task_rewards": [], "quests": {}},
 		"inventory": {"slots": []},
 		"skills": {"xp": xp, "hitpoints": SkillData.MAX_HITPOINTS},
 	}

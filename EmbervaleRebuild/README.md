@@ -2,7 +2,7 @@
 
 The clean-slate rebuild of the Driftwood Isle demo, built from the specifications one directory up
 ([SPEC_GAME.md](../SPEC_GAME.md), [SPEC_SAVE.md](../SPEC_SAVE.md), [SPEC_GRAPHICS.md](../SPEC_GRAPHICS.md),
-[SPEC_SKILLS.md](../SPEC_SKILLS.md)) and scheduled by [PLAN.md](../PLAN.md).
+[SPEC_SKILLS.md](../SPEC_SKILLS.md), [SPEC_SMITHING.md](../SPEC_SMITHING.md)) and scheduled by [PLAN.md](../PLAN.md).
 
 - **Engine:** Godot **4.7-stable** (standard build, not .NET), `4.7.stable.official.5b4e0cb0f`.
   Compatibility (OpenGL 3) renderer.
@@ -35,18 +35,18 @@ godot --headless --path . res://tests/check_scripts.tscn                      # 
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_screenshots.tscn -- <out_dir>  # flow screenshots
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_views.tscn -- <out_dir>  # fixed views
 godot --path . --rendering-driver opengl3 res://tests/perf_report.tscn [-- <report.txt>]           # draw calls + generation
-```
-
 godot --headless --path . --export-release "Windows Desktop" build/windows/Embervale.exe            # needs 4.7-stable export templates
 ```
 
 ```bash
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- playthrough  # no-teleport tutorial run + pacing report
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- skills_playthrough  # tutorial end -> steel axe
+godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- quest_playthrough   # Brann's quest, start to finish
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/quit_check.tscn  # graceful quit (look for "leaked")
 ```
 
-Suites: `world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`, `playthrough`, `skills_playthrough`.
+Suites: `world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`, `playthrough`, `skills_playthrough`,
+`smithing`, `quest_playthrough`.
 Any runtime script error raised during a test fails it (`tests/error_catcher.gd`).
 
 On Linux without a display, prefix the rendering commands with `xvfb-run -a -s "-screen 0 1280x720x24"`.

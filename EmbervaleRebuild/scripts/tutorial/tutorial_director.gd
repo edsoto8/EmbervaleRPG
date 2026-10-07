@@ -52,6 +52,7 @@ func setup(w: World) -> void:
 	_link(QuestManager.progress_changed, _refresh_markers)
 	_link(QuestManager.tutorial_completed, _on_tutorial_completed)
 	_link(InventoryManager.item_examined, _on_item_examined)
+	_link(InventoryManager.inventory_changed, _refresh_markers)
 	_link(DialogueManager.dialogue_ended, _on_dialogue_ended)
 	_refresh_markers()
 	_repair_after_load()
@@ -86,10 +87,15 @@ func _spawn_npcs() -> void:
 	pip.wanders = true
 	pip.model_scale = 0.86
 	for npc in [maelis, marla, tobin, pip]:
-		npc.island = island
-		world.add_child(npc)
-		npc.talk_requested.connect(talk_to)
-		npcs[npc.npc_id] = npc
+		register_npc(npc)
+
+
+## Adds a villager to the world and routes their conversations here (later directors add theirs).
+func register_npc(npc: Npc) -> void:
+	npc.island = island
+	world.add_child(npc)
+	npc.talk_requested.connect(talk_to)
+	npcs[npc.npc_id] = npc
 
 
 func _build_marker() -> void:
@@ -139,8 +145,18 @@ func _build_arrow() -> void:
 	objective_arrow.visible = false
 
 
+## Post-tutorial objective providers (Milestone 7): quest_target_provider returns a world position or
+## INF; arrow_npc_provider returns the Npc to mark with the arrow, or null.
+var quest_target_provider := Callable()
+var arrow_npc_provider := Callable()
+## Conversations for villagers added by later directors: npc_id -> Callable returning a graph.
+var graph_providers := {}
+
+
 ## World position of the current objective (minimap star and arrow), or INF when there is none.
 func objective_target() -> Vector3:
+	if QuestManager.is_tutorial_complete() and quest_target_provider.is_valid():
+		return quest_target_provider.call()
 	match QuestManager.current_id():
 		"learn_to_move":
 			return island.landmarks.move_marker if not QuestManager.marker_reached else Vector3.INF
@@ -155,8 +171,20 @@ func _refresh_markers() -> void:
 	if marker:
 		marker.visible = QuestManager.current_id() == "learn_to_move" and not QuestManager.marker_reached
 	if objective_arrow:
-		var id := QuestManager.current_id()
-		objective_arrow.visible = id == "talk_to_instructor" or id == "return_to_instructor"
+		_arrow_npc = arrow_npc()
+		objective_arrow.visible = _arrow_npc != null
+
+
+var _arrow_npc: Npc = null
+
+
+func arrow_npc() -> Npc:
+	var id := QuestManager.current_id()
+	if id == "talk_to_instructor" or id == "return_to_instructor":
+		return npcs.maelis
+	if QuestManager.is_tutorial_complete() and arrow_npc_provider.is_valid():
+		return arrow_npc_provider.call()
+	return null
 
 
 func _process(delta: float) -> void:
@@ -164,8 +192,8 @@ func _process(delta: float) -> void:
 	if marker and marker.visible:
 		marker.rotation.y = _time * 0.8
 		marker.scale = Vector3.ONE * (1.0 + 0.06 * sin(_time * 3.0))
-	if objective_arrow and objective_arrow.visible:
-		objective_arrow.global_position = npcs.maelis.global_position + Vector3(0, 2.55 + 0.12 * sin(_time * 3.0), 0)
+	if objective_arrow and objective_arrow.visible and is_instance_valid(_arrow_npc):
+		objective_arrow.global_position = _arrow_npc.global_position + Vector3(0, 2.55 + 0.12 * sin(_time * 3.0), 0)
 		objective_arrow.rotation.y = _time * 1.5
 
 
@@ -280,6 +308,8 @@ func talk_to(npc: Npc) -> void:
 
 
 func _graph_for(npc: Npc) -> Dictionary:
+	if graph_providers.has(npc.npc_id):
+		return graph_providers[npc.npc_id].call()
 	var ctx := {"name": GameManager.character.name, "logs": InventoryManager.count("logs"), "give_sword": _give_sword}
 	match npc.npc_id:
 		"maelis":

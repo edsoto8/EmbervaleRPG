@@ -355,8 +355,8 @@ func train(dummy: TrainingDummy, p: PlayerController) -> void:
 
 # --- shop ---------------------------------------------------------------------------------------------
 
-const SHOP_STOCK := ["steel_axe", "oak_fishing_rod", "tinderbox", "bread"]
-const UNIQUE_TOOLS := ["steel_axe", "oak_fishing_rod"]
+const SHOP_STOCK := ["steel_axe", "oak_fishing_rod", "steel_pickaxe", "tinderbox", "hammer", "bread"]
+const UNIQUE_TOOLS := ["steel_axe", "oak_fishing_rod", "steel_pickaxe"]
 
 
 func browse(_stall: MarketStall, _p: PlayerController) -> void:

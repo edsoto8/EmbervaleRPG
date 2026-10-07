@@ -94,6 +94,8 @@ func setup(w: World, d: TutorialDirector, i: InteractionSystem) -> void:
 	_link(SkillsManager.level_up, _on_level_up)
 	_link(QuestManager.task_completed, func(id: String) -> void: show_banner("Task complete: %s" % TaskData.text(id)))
 	_link(QuestManager.all_tasks_completed, func() -> void: show_banner("Driftwood Isle mastered!"))
+	_link(QuestManager.quest_started, func(id: String) -> void: show_banner("Quest started: %s" % QuestData.title(id)))
+	_link(QuestManager.quest_completed, func(id: String) -> void: show_banner("Quest complete: %s!" % QuestData.title(id)))
 	refresh_tracker()
 	refresh_hitpoints(SkillsManager.hitpoints, SkillData.MAX_HITPOINTS)
 
@@ -266,6 +268,7 @@ func refresh_tracker() -> void:
 	if QuestManager.is_tutorial_complete():
 		tracker_title.text = "Ready for adventure"
 		tracker_objective.text = "Your training is complete. Explore the island and keep practising."
+		_fill_quests()
 		_fill_tasks()
 		return
 	var obj := QuestManager.current_objective()
@@ -280,6 +283,25 @@ func refresh_tracker() -> void:
 		if i == QuestManager.index:
 			l.get_child(1).add_theme_color_override("font_color", UITheme.ACCENT)
 		tracker_list.add_child(l)
+
+
+## Quests below "Ready for adventure" (Milestone 7): a hint before starting, the checklist while active
+## and a single ticked line once complete.
+func _fill_quests() -> void:
+	for id in QuestData.ids():
+		var q: Dictionary = QuestData.QUESTS[id]
+		var stage := QuestManager.quest_stage(id)
+		if QuestManager.is_quest_complete(id):
+			tracker_list.add_child(_check_line("Quest complete: %s" % q.title, true, 14))
+			continue
+		tracker_list.add_child(UITheme.label(q.title, 15, UITheme.ACCENT))
+		if stage == 0:
+			tracker_list.add_child(UITheme.wrapped(q.start_hint, 14, UITheme.TEXT, 276))
+			continue
+		for f in q.flags:
+			tracker_list.add_child(_check_line(f.text, QuestManager.has_quest_flag(id, f.id), 14))
+		tracker_list.add_child(_check_line(q.hand_in_text, false, 14))
+	tracker_list.add_child(HSeparator.new())
 
 
 ## Island tasks below "Ready for adventure" (populated from Milestone 6).

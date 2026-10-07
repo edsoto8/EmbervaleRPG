@@ -3,7 +3,7 @@ extends RefCounted
 ## 128 x 128 m heightfield with 1 m tiles, centred on the origin. Generates heights, per-tile
 ## surface types and colours, the flat-shaded visible mesh and the walkable collision.
 
-enum Tile { SEA, SAND, GRASS, FOREST, PATH, PLAZA, COURTYARD, POND_BED, MUD, DOCK_SAND }
+enum Tile { SEA, SAND, GRASS, FOREST, PATH, PLAZA, COURTYARD, POND_BED, MUD, DOCK_SAND, GRAVEL }
 
 const SIZE := 128
 const HALF := 64
@@ -35,6 +35,8 @@ func generate() -> void:
 		"courtyard": _raw_height(25, 4),
 		"forest": _raw_height(IslandLayout.FOREST.x, IslandLayout.FOREST.y),
 		"gate": _raw_height(IslandLayout.GATE.x, IslandLayout.GATE.y + 4.0),
+		"smithy": _raw_height(IslandLayout.SMITHY.x, IslandLayout.SMITHY.y),
+		"quarry": _raw_height(IslandLayout.QUARRY.x, IslandLayout.QUARRY.y),
 		"cottages": IslandLayout.COTTAGES.map(func(c: Vector2) -> float: return _raw_height(c.x, c.y)),
 	}
 	heights.resize(VERTS * VERTS)
@@ -128,6 +130,9 @@ func _shaped_height(x: float, z: float) -> float:
 	# Courtyard rectangle.
 	var cd := _rect_distance(p, IslandLayout.COURTYARD_MIN - Vector2(1, 1), IslandLayout.COURTYARD_MAX + Vector2(1, 1))
 	h = lerpf(h, _flat_targets["courtyard"], 1.0 - smoothstep(0.0, 3.5, cd))
+	# Smithy yard and quarry floor (Milestone 7).
+	h = _flatten_disc(h, p, IslandLayout.SMITHY, IslandLayout.SMITHY_RADIUS + 0.5, 2.5, _flat_targets["smithy"])
+	h = _flatten_disc(h, p, IslandLayout.QUARRY, IslandLayout.QUARRY_RADIUS + 0.6, 2.5, _flat_targets["quarry"])
 	# Gate approach.
 	h = _flatten_disc(h, p, IslandLayout.GATE + Vector2(0, 2), 6.0, 4.0, _flat_targets["gate"])
 	# Pond: level surroundings, then a basin whose edge meets the 0.18 m surface at ~6.5 m.
@@ -166,6 +171,8 @@ func _classify(x: float, z: float) -> int:
 		return Tile.COURTYARD
 	if IslandLayout.in_plaza(p):
 		return Tile.PLAZA
+	if IslandLayout.in_smithy(p) or IslandLayout.in_quarry(p):
+		return Tile.GRAVEL
 	if IslandLayout.distance_to_paths(p) <= IslandLayout.PATH_HALF_WIDTH:
 		return Tile.PATH
 	if dpond < 7.6:
@@ -230,6 +237,16 @@ func tile_color(i: int, j: int) -> Color:
 			c = Color("7b7350")
 		Tile.MUD:
 			c = Color("7d8a48").lerp(Color("8f7d55"), 0.5 + n * 0.5)
+		Tile.GRAVEL:
+			# Packed grey-brown grit with scattered lighter chips; sootier in the smithy yard.
+			var f := _hash01(i * 13, j * 7)
+			c = Color("9a9184").lerp(Color("877e72"), 0.5 + n * 0.5)
+			if f > 0.85:
+				c = c.lightened(0.12)
+			elif f < 0.1:
+				c = c.darkened(0.1)
+			if IslandLayout.in_smithy(Vector2(x, z)):
+				c = c.lerp(Color("6e665c"), 0.35)
 	c = c.lightened(jitter * 0.06) if jitter > 0.0 else c.darkened(-jitter * 0.06)
 	# Wet sand at the waterline.
 	if t == Tile.SAND and height_at(x, z) < 0.2:

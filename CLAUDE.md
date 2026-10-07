@@ -28,7 +28,7 @@ commands below show raw engine arguments; no platform-specific timeout utility i
 ```bash
 godot --headless --editor --path . --import --quit                                       # rebuild .godot cache / class registry; reports parse errors
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn     # all suites; exit code 0 = pass
-godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- world   # one suite (world | flow | tutorial | polish | playthrough | graphics | skills | skills_playthrough)
+godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- world   # one suite (world | flow | tutorial | polish | playthrough | graphics | skills | skills_playthrough | smithing | quest_playthrough)
 godot --headless --path . --fixed-fps 60 --quit-after 600                               # smoke-run the main menu ~10 s, watch for errors
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_screenshots.tscn -- <out_dir>  # visual check
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_views.tscn -- <out_dir> [low|medium|high]  # 6 views, ~1 min
@@ -163,6 +163,14 @@ shared APIs exist. Units editing the same world/HUD/director files run sequentia
   object with such a loop must not be freed while it waits (see `Campfire`, which frees itself after
   cooking stops). `SkillsDirector` (world node) handles inventory item actions, fire placement, Tobin's
   rod, the shop and level-up sparks. Island tasks are in `QuestManager` (`report_task()`).
+- **Smithing and quests (Milestone 7).** Rocks, smelting and smithing recipes live in `SkillData`
+  (`ROCKS`, `RECIPES`); quests in `QuestData`, with progress in `QuestManager.quests`
+  (`start_quest`, `report_quest_flag`, `complete_quest`; saved as `quest.quests`). `SmithyDirector`
+  (world node, after `SkillsDirector`) runs mining, the furnace/anvil `CraftPanel` loops, Brann and the
+  hand-in transaction. Villagers added by later directors go through `TutorialDirector.register_npc()`
+  and `graph_providers`; post-tutorial markers through `quest_target_provider`/`arrow_npc_provider`.
+  `MiningRock`s are kept out of the merge (they toggle to rubble). The shoreline boundary search
+  marches past the pond; never let it stop at inland water, or walls cut the island in two.
 - **Dialogue and tracker.** The shop opens from `MarketCounter` (the stall). Island tasks appear
   beneath "Ready for adventure". The reference tutorial test assumes a one-line `merchant_chat`; this
   is historical coupling. Rebuild tests assert dialogue outcomes, allowing wording/line-count edits.
