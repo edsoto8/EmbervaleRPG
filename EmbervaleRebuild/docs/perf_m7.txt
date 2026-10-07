@@ -1,0 +1,25 @@
+Embervale perf report — 4.7-stable (official), llvmpipe (LLVM 20.1.2, 256 bits)
+Viewport (1280.0, 720.0), renderer gl_compatibility
+Generation: cold 1487 ms, warm median 1102 ms (limit 1500) PASS
+Stages (last load): { "terrain": 177.75, "ground": 47.093, "boundaries": 24.334, "dock": 2.132, "village": 4.957, "courtyard": 3.046, "forest": 14.934, "pond": 1.233, "gate": 0.822, "smithy": 1.055, "quarry": 6.217, "scatter": 21.279, "skill_trees": 11.778, "ground_cover": 10.011, "ground_cover_m5": 32.724, "mainland": 2.567, "landmarks": 0.05, "terrain_mesh": 102.353, "water": 0.378, "water_depth": 70.269, "merge_meshes": 120.433, "ambient_life": 5.193, "bake_navigation": 76.067 }
+low      dock      peak draw calls  97  PASS
+low      village   peak draw calls 125  PASS
+low      forest    peak draw calls 104  PASS
+low      overview  peak draw calls 150  PASS
+low      smithy    peak draw calls 151  PASS
+low      quarry    peak draw calls 124  PASS
+medium   dock      peak draw calls 120  PASS
+medium   village   peak draw calls 158  PASS
+medium   forest    peak draw calls 113  PASS
+medium   overview  peak draw calls 151  PASS
+medium   smithy    peak draw calls 213  PASS
+medium   quarry    peak draw calls 164  PASS
+high     dock      peak draw calls 130  PASS
+high     village   peak draw calls 167  PASS
+high     forest    peak draw calls 121  PASS
+high     overview  peak draw calls 210  PASS
+high     smithy    peak draw calls 234  PASS
+high     quarry    peak draw calls 187  PASS
+medium   pond+fx   peak draw calls 195  PASS
+medium   court+fx  peak draw calls 206  PASS
+Worst view 234 draw calls (hard limit 450, target 260) PASS
