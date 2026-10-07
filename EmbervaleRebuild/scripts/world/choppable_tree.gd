@@ -35,8 +35,8 @@ func _ready() -> void:
 			PropFactory.cylinder(full_visual, 0.26, 0.42, 2.4, Vector3(0, 1.2, 0), Color("5e4126"), 7)
 			for k in 3:
 				var a := k * TAU / 3.0 + 0.4
-				PropFactory.box(full_visual, Vector3(0.75, 0.26, 0.26), Vector3(cos(a) * 0.42, 0.1, sin(a) * 0.42),
-						Color("4f3620"), Vector3(0, -a, 0.3))
+				PropFactory.box(full_visual, Vector3(0.75, 0.26, 0.26), Vector3(cos(a) * 0.4, 0.02, sin(a) * 0.4),
+						Color("4f3620"), Vector3(0, -a, -0.35))
 			PropFactory.swaying(PropFactory.sphere(full_visual, 1.5, Vector3(0, 2.6, 0), Color("2f5f27"), Vector3(1.15, 0.55, 1.15)), 0.3)
 			for c in [[Vector3(0, 3.1, 0), 1.65, Color("3f7a32")], [Vector3(0.9, 3.6, 0.3), 1.0, Color("4a8a38")],
 					[Vector3(-0.8, 3.5, -0.4), 1.05, Color("447f35")], [Vector3(0.2, 4.2, -0.3), 0.7, Color("5a9a42")]]:

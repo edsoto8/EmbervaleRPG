@@ -608,8 +608,8 @@ func _build_tree(parent: Node, p: Vector2, pine: bool, scale: float = -1.0) -> N
 		PropFactory.cylinder(tree, 0.18 * s, 0.3 * s, 2.3 * s, Vector3(0, 1.15 * s, 0), trunk, 7)
 		for k in 3:
 			var a := h * TAU + k * TAU / 3.0
-			PropFactory.box(tree, Vector3(0.6, 0.2, 0.2) * s, Vector3(cos(a) * 0.32, 0.08, sin(a) * 0.32) * s,
-					trunk.darkened(0.1), Vector3(0, -a, 0.3))
+			PropFactory.box(tree, Vector3(0.6, 0.2, 0.2) * s, Vector3(cos(a) * 0.3, 0.02, sin(a) * 0.3) * s,
+					trunk.darkened(0.1), Vector3(0, -a, -0.35))
 		var g := Color("4a8638").lerp(Color("6ea043"), _rng.randf())
 		var shade := g.darkened(0.22)
 		# A shaded under-canopy, a broad main crown and two lighter lobes catching the sun.
@@ -1157,10 +1157,15 @@ func _bake_water_depth() -> void:
 
 func _depth_image(rect: Rect2, res: int, level: float) -> Image:
 	var img := Image.create(res, res, false, Image.FORMAT_R8)
+	var deep := Color(1.0, 0, 0)
 	for j in res:
 		for i in res:
 			var x := rect.position.x + (i + 0.5) / res * rect.size.x
 			var z := rect.position.y + (j + 0.5) / res * rect.size.y
+			# Beyond the coast's reach the sea is always deep; skip the height lookup.
+			if level == IslandLayout.SEA_LEVEL and x * x + z * z > 58.0 * 58.0:
+				img.set_pixel(i, j, deep)
+				continue
 			var depth := level - terrain.height_at(x, z)
 			img.set_pixel(i, j, Color(clampf((depth + 2.0) / 8.0, 0.0, 1.0), 0, 0))
 	return img

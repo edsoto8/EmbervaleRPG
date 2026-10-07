@@ -84,9 +84,26 @@ static func distance_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 	return p.distance_to(a + ab * t)
 
 
+static var _path_bounds: Array[Rect2] = []
+
+
+## Distance to the nearest path. Each path's bounding box is tested first, which skips most segment
+## tests during generation (this runs tens of thousands of times).
 static func distance_to_paths(p: Vector2) -> float:
+	if _path_bounds.is_empty():
+		for path in PATHS:
+			var r := Rect2(path[0], Vector2.ZERO)
+			for q in path:
+				r = r.expand(q)
+			_path_bounds.append(r)
 	var best := INF
-	for path in PATHS:
+	for k in PATHS.size():
+		var r := _path_bounds[k]
+		var dx := maxf(maxf(r.position.x - p.x, 0.0), p.x - r.end.x)
+		var dy := maxf(maxf(r.position.y - p.y, 0.0), p.y - r.end.y)
+		if dx * dx + dy * dy >= best * best:
+			continue
+		var path: Array = PATHS[k]
 		for i in path.size() - 1:
 			best = minf(best, distance_to_segment(p, path[i], path[i + 1]))
 	return best
