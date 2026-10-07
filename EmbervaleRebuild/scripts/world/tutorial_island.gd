@@ -35,6 +35,10 @@ var ambient: AmbientLife
 
 var _rng := RandomNumberGenerator.new()
 var _cover_rng := RandomNumberGenerator.new()
+var _skill_rng := RandomNumberGenerator.new()
+## Oak and willow trees (Milestone 6), also listed in choppable_trees.
+var oak_trees: Array = []
+var willow_trees: Array = []
 var _props: Node3D
 var _decor: Node3D
 var _grass_core: Node3D
@@ -66,6 +70,7 @@ func generate() -> void:
 	var t0 := Time.get_ticks_usec()
 	_rng.seed = generation_seed
 	_cover_rng.seed = IslandLayout.COVER_SEED
+	_skill_rng.seed = IslandLayout.SKILL_SEED
 	terrain = IslandTerrain.new()
 	_stage("terrain", terrain.generate)
 
@@ -97,6 +102,7 @@ func generate() -> void:
 	_stage("pond", _build_pond)
 	_stage("gate", _build_gate)
 	_stage("scatter", _build_scatter)
+	_stage("skill_trees", _build_skill_trees)
 	_stage("ground_cover", _build_ground_cover)
 	_stage("ground_cover_m5", _build_extra_cover)
 	_stage("mainland", _build_mainland)
@@ -585,6 +591,57 @@ func _build_tree(parent: Node, p: Vector2, pine: bool, scale: float = -1.0) -> N
 	return tree
 
 
+## Four oaks along the forest's outer edge and three willows around the pond (south bank clear).
+## Placed with their own RNG after everything else, so no earlier prop moves.
+func _build_skill_trees() -> void:
+	var found := 0
+	var tries := 0
+	while found < 4 and tries < 1500:
+		tries += 1
+		var a := _skill_rng.randf() * TAU
+		var r := _skill_rng.randf_range(13.5, 18.5)
+		var p: Vector2 = IslandLayout.FOREST + Vector2(cos(a), sin(a)) * r
+		if not _can_place(p, 1.6):
+			continue
+		_add_skill_tree("oak", p)
+		found += 1
+	found = 0
+	tries = 0
+	while found < 3 and tries < 400:
+		tries += 1
+		var a := _skill_rng.randf() * TAU
+		if absf(wrapf(a - PI * 0.5, -PI, PI)) < 1.1:
+			continue
+		var p: Vector2 = IslandLayout.POND + Vector2(cos(a), sin(a)) * _skill_rng.randf_range(8.6, 9.6)
+		if not terrain.is_land(p.x, p.y) or IslandLayout.distance_to_paths(p) < 3.0 or IslandLayout.in_courtyard(p, 2.0):
+			continue
+		var clear := true
+		for t in willow_trees:
+			if p.distance_to(Vector2(t.position.x, t.position.z)) < 5.0:
+				clear = false
+		for rsv in _reserved:
+			var c := Vector2(rsv.x, rsv.y)
+			if c != IslandLayout.POND and p.distance_to(c) < rsv.z + 1.6:
+				clear = false
+		if not clear:
+			continue
+		_add_skill_tree("willow", p)
+		found += 1
+
+
+func _add_skill_tree(kind: String, p: Vector2) -> void:
+	var tree := ChoppableTree.new(kind)
+	tree.name = kind.capitalize() + "Tree"
+	tree.position = ground_point(p)
+	tree.rotation.y = _skill_rng.randf() * TAU
+	_props.add_child(tree)
+	choppable_trees.append(tree)
+	(oak_trees if kind == "oak" else willow_trees).append(tree)
+	_keep.append(tree)
+	_reserve(p, 2.0)
+	_occlude(p, 2.4, 0.4)
+
+
 func _build_pond() -> void:
 	var pond_node := Node3D.new()
 	pond_node.name = "Pond"
@@ -982,6 +1039,10 @@ func _build_landmarks() -> void:
 		"npc_wanderer": ground_point(IslandLayout.WANDERER_HOME),
 		"training_dummy": ground_point(IslandLayout.DUMMIES[0]),
 	}
+	if oak_trees.size() > 0:
+		landmarks["oak_tree"] = oak_trees[0].position
+	if willow_trees.size() > 0:
+		landmarks["willow_tree"] = willow_trees[0].position
 
 
 func _build_terrain_mesh() -> void:

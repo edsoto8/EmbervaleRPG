@@ -11,7 +11,7 @@ network access is needed.
 
 ## Status
 
-**Rebuild in progress** in [`EmbervaleRebuild/`](EmbervaleRebuild/) (Godot 4.7-stable). This repository
+**Rebuild complete through Milestone 6** in [`EmbervaleRebuild/`](EmbervaleRebuild/) (Godot 4.7-stable). This repository
 holds the specifications; the reference implementation they mention is not included, so the rebuild
 was written from the specs. The checklist in [PLAN.md](PLAN.md) tracks the rebuild, and
 [`EmbervaleRebuild/VERIFICATION.md`](EmbervaleRebuild/VERIFICATION.md) records what was verified and

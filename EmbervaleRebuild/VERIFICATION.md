@@ -100,3 +100,31 @@ counts and generation times are. Native Windows and real-hardware checks are lis
   bypasses that shutdown path (recorded separately, as CLAUDE.md asks).
 - **Not done:** a video or live review of water, gusts, anchored stems and transitions in motion,
   and frame times on real GPUs.
+
+## Milestone 6 — Skills and progression
+
+- Import/parse: clean (72 scripts compile).
+- All ten suites pass: 107 tests (`world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`,
+  `playthrough`, `skills_playthrough`). `skills` covers the XP table (83 / 388 / 1,154 / 13,034,431),
+  the cap, single notification for multi-level gains, every S10 formula, normal/oak/willow chopping
+  with requirements, continuous loops, depletion after the log, the steel axe, Tobin's gear (and the
+  repeatable full-inventory case), fishing loops, failed casts, stack growth in a full pack and the
+  trout capacity rule, firemaking placement rules, failure-and-retry, fire burn-out, cooking order,
+  burning and singeing, capacity reservation, the fire expiring mid-cook, eating and healing rules,
+  regeneration (30 s, frozen while paused), Attack training to level 10, the shop (buy/sell one/all,
+  refusals, freed-slot transactions, no partial changes), the tracker, pending rewards, the finale
+  once, tasks during the tutorial, level tasks on import (paid once), the Skills panel, XP drops,
+  level-up message/sparks/jingle, and save round-trips including older saves without skills.
+- No-teleport skills playthrough from the end of the tutorial: Tobin's gear -> fishing -> chopping
+  -> lighting a fire -> cooking -> eating -> selling to Marla -> buying the steel axe, by clicks and
+  keys only with deterministic rolls; zero jumps. Diagnostic pacing (accelerated): movement 33 s,
+  actions 41 s. Human pacing targets (5-15 min to the steel axe, 15-30 min for all tasks) are not
+  measured here.
+- Perf report (`docs/perf_m6.txt`): warm generation 832 ms; worst view 190 draw calls (courtyard
+  with training), pond with fishing 186, every preset under the 260 target and 450 limit.
+- Windows release export rebuilt; the pack runs cleanly on Linux and excludes the test scenes.
+- Screenshots of the whole flow, including fishing, a fire, the Skills panel, the shop and training:
+  `docs/screenshots/flow/`.
+- **Not done (needs a person or hardware):** completing all ten tasks by hand and recording human
+  pacing, a native Windows release smoke test, frame rates on the provisional i5-8250U/UHD 620
+  laptop, listening to the audio, and live motion review.

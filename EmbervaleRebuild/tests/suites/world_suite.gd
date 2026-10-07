@@ -3,7 +3,7 @@ extends TestSuite
 
 const LANDMARK_RANGES := {
 	"npc_instructor": 2.0, "npc_merchant": 2.0, "npc_fisher": 2.0, "npc_wanderer": 2.0,
-	"training_dummy": 1.9,
+	"training_dummy": 1.9, "oak_tree": 1.7, "willow_tree": 1.7,
 }
 
 

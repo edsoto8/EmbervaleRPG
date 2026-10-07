@@ -15,6 +15,7 @@ var intro: IntroCutscene
 var is_ready := false
 var interaction: InteractionSystem
 var director: TutorialDirector
+var skills: SkillsDirector
 var hud: GameHUD
 
 
@@ -103,6 +104,10 @@ func _build_systems(hide_hud: bool) -> void:
 	hud.setup(self, director, interaction)
 	hud.visible = not hide_hud
 	director.setup(self)
+	skills = SkillsDirector.new()
+	skills.name = "SkillsDirector"
+	add_child(skills)
+	skills.setup(self)
 
 
 ## True once the player stands in the world for real (navigation ready, intro over).

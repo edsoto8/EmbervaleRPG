@@ -180,18 +180,18 @@ Spec: [SPEC_GRAPHICS.md](SPEC_GRAPHICS.md).
 
 Spec: [SPEC_SKILLS.md](SPEC_SKILLS.md).
 
-- [ ] S1 `SkillsManager` autoload: five skills + hitpoints, RuneScape XP curve, level-ups, XP drops,
+- [x] S1 `SkillsManager` autoload: five skills + hitpoints, RuneScape XP curve, level-ups, XP drops,
       level-up jingle and sparks, Skills panel (K)
-- [ ] S2 Woodcutting XP; oak (lvl 5) and willow (lvl 10) trees that give several logs; faster with
+- [x] S2 Woodcutting XP; oak (lvl 5) and willow (lvl 10) trees that give several logs; faster with
       level and the steel axe
-- [ ] S3 Fishing: rod + tinderbox from Old Tobin, two pond fishing spots, shrimp / trout, repeat until
+- [x] S3 Fishing: rod + tinderbox from Old Tobin, two pond fishing spots, shrimp / trout, repeat until
       moved or full
-- [ ] S4 Firemaking: Light from the inventory, fires that burn out, placement rules, failures
-- [ ] S5 Cooking on fires with burn chance; Eat heals; hitpoints regenerate
-- [ ] S6 Attack training on the courtyard dummies (up to level 10)
-- [ ] S7 Coins and Marla's shop, opened from her stall
-- [ ] S8 Island tasks after the tutorial, with coin rewards and a finale
-- [ ] S9 Save nested skills/hitpoints, tasks and pending rewards; version 1 imports and earlier rebuild saves load
-- [ ] S10 Exact balance formulas, activity cancellation, capacity transactions and gear recovery
-- [ ] Full task/reward coverage, including tutorial-time credit and repeated Continue without duplicate grants
-- [ ] Skills suite + no-teleport skills playthrough; hard perf limit ≤ 450 draw calls on every preset (≤ 260 optimization target)
+- [x] S4 Firemaking: Light from the inventory, fires that burn out, placement rules, failures
+- [x] S5 Cooking on fires with burn chance; Eat heals; hitpoints regenerate
+- [x] S6 Attack training on the courtyard dummies (up to level 10)
+- [x] S7 Coins and Marla's shop, opened from her stall
+- [x] S8 Island tasks after the tutorial, with coin rewards and a finale
+- [x] S9 Save nested skills/hitpoints, tasks and pending rewards; version 1 imports and earlier rebuild saves load
+- [x] S10 Exact balance formulas, activity cancellation, capacity transactions and gear recovery
+- [x] Full task/reward coverage, including tutorial-time credit and repeated Continue without duplicate grants
+- [x] Skills suite + no-teleport skills playthrough; hard perf limit ≤ 450 draw calls on every preset (≤ 260 optimization target)

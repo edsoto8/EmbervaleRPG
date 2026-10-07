@@ -21,6 +21,9 @@ var log_panel: PanelContainer
 var inventory_button: Button
 var inventory_panel: InventoryPanel
 var dialogue_panel: DialoguePanel
+var skills_panel: SkillsPanel
+var skills_button: Button
+var xp_drops: VBoxContainer
 var hover_label: Label
 var bottom_right: HBoxContainer
 var messages: Array[String] = []
@@ -50,6 +53,24 @@ func setup(w: World, d: TutorialDirector, i: InteractionSystem) -> void:
 	inventory_panel.offset_bottom = -70
 	root.add_child(inventory_panel)
 	inventory_panel.visibility_reported.connect(func(open: bool) -> void: QuestManager.report_inventory_visibility(open))
+	skills_panel = SkillsPanel.new()
+	skills_panel.name = "SkillsPanel"
+	skills_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	skills_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	skills_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	skills_panel.offset_right = -16
+	skills_panel.offset_bottom = -70
+	root.add_child(skills_panel)
+	skills_button = add_button("Skills (K)", toggle_skills, "SkillsButton")
+	xp_drops = UITheme.vbox(2)
+	xp_drops.name = "XpDrops"
+	xp_drops.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	xp_drops.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	xp_drops.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	xp_drops.offset_right = -18
+	xp_drops.offset_top = 246
+	xp_drops.alignment = BoxContainer.ALIGNMENT_BEGIN
+	root.add_child(xp_drops)
 	dialogue_panel = DialoguePanel.new()
 	dialogue_panel.name = "DialoguePanel"
 	root.add_child(dialogue_panel)
@@ -65,8 +86,10 @@ func setup(w: World, d: TutorialDirector, i: InteractionSystem) -> void:
 	_link(DialogueManager.dialogue_started, func(_id: String) -> void: _on_dialogue(true))
 	_link(DialogueManager.dialogue_ended, func(_id: String, _o: Dictionary) -> void: _on_dialogue(false))
 	_link(interaction.hover_changed, _on_hover)
+	_link(SkillsManager.hitpoints_changed, refresh_hitpoints)
+	_link(SkillsManager.xp_gained, show_xp_drop)
 	refresh_tracker()
-	refresh_hitpoints()
+	refresh_hitpoints(SkillsManager.hitpoints, SkillData.MAX_HITPOINTS)
 
 
 func _link(sig: Signal, cb: Callable) -> void:
@@ -245,8 +268,31 @@ func _check_line(text: String, done: bool, size: int) -> HBoxContainer:
 	return row
 
 
+func toggle_skills() -> void:
+	skills_panel.toggle()
+	if skills_panel.visible:
+		inventory_panel.hide_panel()
+
+
+## Floating "+25 Woodcutting" by the minimap.
+func show_xp_drop(skill: String, amount: float) -> void:
+	var l := UITheme.label("+%s %s" % [str(snappedf(amount, 0.1)).trim_suffix(".0"), SkillData.SKILL_NAMES[skill]], 17, Color("ffe066"))
+	l.add_theme_constant_override("outline_size", 5)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	l.name = "XpDrop"
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	l.size_flags_horizontal = Control.SIZE_SHRINK_END
+	xp_drops.add_child(l)
+	var t := l.create_tween()
+	t.tween_interval(1.0)
+	t.tween_property(l, "modulate:a", 0.0, 0.8)
+	t.tween_callback(l.queue_free)
+
+
 func toggle_inventory() -> void:
 	inventory_panel.toggle()
+	if inventory_panel.visible and skills_panel:
+		skills_panel.hide_panel()
 	AudioManager.play("inventory", -6.0)
 
 
@@ -272,12 +318,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		if GameManager.state == GameManager.State.PLAYING and world.gameplay_enabled:
 			get_viewport().set_input_as_handled()
 			toggle_inventory()
+	elif event.is_action_pressed("skills") and not event.is_echo():
+		if GameManager.state == GameManager.State.PLAYING and world.gameplay_enabled:
+			get_viewport().set_input_as_handled()
+			toggle_skills()
 	elif event.is_action_pressed("pause") and close_top_panel():
 		get_viewport().set_input_as_handled()
 
 
 ## Esc closes the topmost HUD panel first. Returns true if one was closed.
 func close_top_panel() -> bool:
+	if skills_panel.visible:
+		skills_panel.hide_panel()
+		return true
 	if inventory_panel.visible:
 		inventory_panel.hide_panel()
 		return true

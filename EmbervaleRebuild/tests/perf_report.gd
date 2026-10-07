@@ -53,6 +53,12 @@ func _ready() -> void:
 			worst = maxi(worst, peak)
 			_out("%-8s %-9s peak draw calls %3d  %s" % [["low", "medium", "high"][preset] if preset >= 0 else "-", v[0], peak,
 					"PASS" if peak <= HARD_LIMIT else "FAIL"])
+	# Milestone 6 views: the pond with fishing and a fire, the courtyard with training.
+	if world.skills:
+		var m6 := await _measure_activities(world)
+		for row in m6:
+			worst = maxi(worst, row[1])
+			_out("%-8s %-9s peak draw calls %3d  %s" % ["medium", row[0], row[1], "PASS" if row[1] <= HARD_LIMIT else "FAIL"])
 	_out("Worst view %d draw calls (hard limit %d, target %d) %s" % [worst, HARD_LIMIT, TARGET, "PASS" if worst <= HARD_LIMIT else "FAIL"])
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
@@ -86,6 +92,40 @@ func _measure(world: World, v: Array) -> int:
 		await get_tree().process_frame
 		peak = maxi(peak, int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)))
 	return peak
+
+
+func _measure_activities(world: World) -> Array:
+	if get_tree().root.has_node("SettingsManager"):
+		get_tree().root.get_node("SettingsManager").set_value("graphics_quality", 1)
+	var out := []
+	SkillsManager.roll_override = 0.99
+	InventoryManager.add_item("fishing_rod")
+	InventoryManager.add_item("tinderbox")
+	InventoryManager.add_item("logs", 3)
+	InventoryManager.add_item("raw_shrimp", 5)
+	var spot: FishingSpot = world.skills.fishing_spots[0]
+	var dir := Vector2(spot.global_position.x - IslandLayout.POND.x, spot.global_position.z - IslandLayout.POND.y).normalized()
+	var bank := world.island.closest_walkable(world.island.ground_point(IslandLayout.POND + dir * 7.6))
+	world.player.teleport(bank + Vector3(1.6, 0, 0.6), PI * 0.6)
+	await get_tree().physics_frame
+	world.skills.light("logs")
+	for i in 130:
+		await get_tree().physics_frame
+	world.player.teleport(bank, 0.0)
+	await get_tree().physics_frame
+	world.skills.fish(spot, world.player)
+	out.append(["pond+fx", await _measure(world, ["pond", Vector3(20, 0, -19), 2.6, 16.0, 42.0])])
+	world.player.cancel_action("perf")
+	QuestManager.from_dict({"index": 5})
+	InventoryManager.add_item("beginner_sword")
+	var dummy: TrainingDummy = world.island.dummies[0]
+	world.player.teleport(dummy.global_position + Vector3(-1.5, 0, 0), PI * 0.5)
+	await get_tree().physics_frame
+	world.skills.train(dummy, world.player)
+	out.append(["court+fx", await _measure(world, ["courtyard", Vector3(25, 0, 4), -0.9, 16.0, 42.0])])
+	world.player.cancel_action("perf")
+	SkillsManager.roll_override = null
+	return out
 
 
 func _out(line: String) -> void:

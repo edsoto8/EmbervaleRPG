@@ -9,7 +9,9 @@ const SUITES := {
 	"tutorial": "res://tests/suites/tutorial_suite.gd",
 	"polish": "res://tests/suites/polish_suite.gd",
 	"graphics": "res://tests/suites/graphics_suite.gd",
+	"skills": "res://tests/suites/skills_suite.gd",
 	"playthrough": "res://tests/suites/playthrough_suite.gd",
+	"skills_playthrough": "res://tests/suites/skills_playthrough_suite.gd",
 }
 
 

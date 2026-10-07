@@ -100,6 +100,56 @@ func post_intro(w: World) -> void:
 	if panel:
 		panel.close()
 	await _frames(5)
+	await skills_shots(w)
+
+
+## Milestone 6: fishing, a fire with cooking, the Skills panel, the shop and training.
+func skills_shots(w: World) -> void:
+	SkillsManager.roll_override = 0.99
+	InventoryManager.add_item("fishing_rod")
+	InventoryManager.add_item("raw_shrimp", 4)
+	InventoryManager.add_item("logs", 2)
+	var spot: FishingSpot = w.skills.fishing_spots[0]
+	var dir := Vector2(spot.global_position.x - IslandLayout.POND.x, spot.global_position.z - IslandLayout.POND.y).normalized()
+	var bank := w.island.closest_walkable(w.island.ground_point(IslandLayout.POND + dir * 7.6))
+	w.player.teleport(bank, IslandLayout.yaw_towards(Vector2(bank.x, bank.z), Vector2(spot.global_position.x, spot.global_position.z)))
+	w.camera_rig.set_view(2.4, 35.0, 8.0)
+	w.camera_rig.snap()
+	w.skills.fish(spot, w.player)
+	await _seconds(1.2)
+	await shot("14_fishing")
+	w.player.cancel_action("shot")
+	w.player.teleport(w.island.landmarks.forest_clearing, 0.0)
+	await _frames(2)
+	w.skills.light("logs")
+	await _seconds(2.0)
+	if w.skills.fires.size() > 0:
+		w.skills.cook(w.skills.fires[0], w.player)
+	w.camera_rig.set_view(0.7, 30.0, 6.0)
+	w.camera_rig.snap()
+	await _seconds(1.0)
+	await shot("15_fire_cooking")
+	w.player.cancel_action("shot")
+	SkillsManager.add_xp("woodcutting", 420)
+	SkillsManager.add_xp("fishing", 120)
+	w.hud.toggle_skills()
+	await _frames(10)
+	await shot("16_skills_panel")
+	w.hud.toggle_skills()
+	InventoryManager.add_item("coins", 75)
+	w.skills.browse(w.skills.stall, w.player)
+	await _frames(10)
+	await shot("17_shop")
+	(get_tree().get_first_node_in_group("modal_panel") as ModalPanel).close()
+	var dummy: TrainingDummy = w.island.dummies[0]
+	w.player.teleport(dummy.global_position + Vector3(-1.5, 0, 0), PI * 0.5)
+	w.camera_rig.set_view(-1.2, 30.0, 7.0)
+	w.camera_rig.snap()
+	w.skills.train(dummy, w.player)
+	await _seconds(0.8)
+	await shot("18_training")
+	w.player.cancel_action("shot")
+	SkillsManager.roll_override = null
 
 
 func shot(shot_name: String) -> void:

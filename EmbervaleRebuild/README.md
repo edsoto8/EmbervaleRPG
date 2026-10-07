@@ -42,7 +42,12 @@ godot --headless --path . --export-release "Windows Desktop" build/windows/Ember
 
 ```bash
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- playthrough  # no-teleport tutorial run + pacing report
+godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- skills_playthrough  # tutorial end -> steel axe
+godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/quit_check.tscn  # graceful quit (look for "leaked")
 ```
+
+Suites: `world`, `flow`, `tutorial`, `polish`, `graphics`, `skills`, `playthrough`, `skills_playthrough`.
+Any runtime script error raised during a test fails it (`tests/error_catcher.gd`).
 
 On Linux without a display, prefix the rendering commands with `xvfb-run -a -s "-screen 0 1280x720x24"`.
 

@@ -4,11 +4,14 @@ extends Node3D
 ## the island batches so it can wobble when hit.
 
 var body: StaticBody3D
+## Set by SkillsDirector: Callable(dummy, player) runs Attack training.
+var attack_handler := Callable()
 var _visual: Node3D
 var _wobble := 0.0
 
 
 func _ready() -> void:
+	add_to_group("interactable")
 	_visual = Node3D.new()
 	_visual.name = "Visual"
 	add_child(_visual)
@@ -24,6 +27,33 @@ func _ready() -> void:
 	MeshMerger.merge(_visual, [], 100.0, {"name": "DummyMesh", "single": true})
 	body = PropFactory.solid(self, "Body", Vector3.ZERO)
 	PropFactory.cylinder_shape(body, 0.35, 2.0, Vector3(0, 1.0, 0))
+
+
+func interaction_verb() -> String:
+	return "Attack"
+
+
+func interaction_name() -> String:
+	return "Training dummy"
+
+
+func interaction_range() -> float:
+	return 1.9
+
+
+func interaction_position() -> Vector3:
+	return global_position
+
+
+func is_available() -> bool:
+	return true
+
+
+func interact(player: Node) -> void:
+	if attack_handler.is_valid():
+		attack_handler.call(self, player)
+	else:
+		GameManager.post_message("Finish your training with Maelis before using the dummies.")
 
 
 ## Makes the dummy rock back and forth briefly (used by training in Milestone 6).

@@ -29,7 +29,9 @@ func test_static_props_are_batched() -> void:
 	check_eq(loose, 0, "every static shared-material mesh is merged")
 	var batches := island.get_node("Batches").get_child_count()
 	check(batches > 5 and batches < 120, "batched into a modest number of chunks (%d)" % batches)
-	check_eq(island.choppable_trees.size(), 5, "five choppable trees kept separate")
+	check_eq(island.choppable_trees.filter(func(t: ChoppableTree) -> bool: return t.tree_type == "normal").size(), 5, "five normal choppable trees kept separate")
+	check_eq(island.oak_trees.size(), 4, "four oaks")
+	check_eq(island.willow_trees.size(), 3, "three willows")
 	check(is_instance_valid(island.boat) and island.boat.is_inside_tree(), "boat kept separate")
 	for c in island.decor_chunks:
 		check_near(c.visibility_range_end, 75.0, 0.01, "small decor fades at 75 m")

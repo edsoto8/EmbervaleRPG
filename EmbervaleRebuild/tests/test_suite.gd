@@ -16,10 +16,12 @@ var error_catcher: ErrorCatcher
 ## Runs every test_* method. Returns the number of failed tests.
 func run_all(filter: String = "") -> int:
 	var failed_tests := 0
+	var seen := {}
 	for m in get_method_list():
 		var n: String = m.name
-		if not n.begins_with("test_"):
+		if not n.begins_with("test_") or seen.has(n):
 			continue
+		seen[n] = true
 		if filter != "" and not n.contains(filter):
 			continue
 		current_test = n
@@ -232,8 +234,13 @@ func key(code: Key) -> void:
 		await frames(1)
 
 
-## Clicks the centre of a Control through the input pipeline.
+## Clicks the centre of a Control through the input pipeline (after a frame, so new controls have
+## been laid out, as they would be before a person could click them).
 func click_control(c: Control) -> void:
+	await frames(1)
+	if not is_instance_valid(c):
+		check(false, "control to click no longer exists")
+		return
 	await click_screen(c.get_global_rect().get_center())
 
 

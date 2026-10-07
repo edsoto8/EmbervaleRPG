@@ -41,6 +41,7 @@ var _loading := false
 
 func _ready() -> void:
 	InventoryManager.inventory_changed.connect(_on_inventory_changed)
+	SkillsManager.level_up.connect(func(_s: String, _l: int) -> void: check_level_tasks())
 
 
 func reset() -> void:
@@ -252,6 +253,14 @@ func _pay(id: String) -> bool:
 	if not was_pending:
 		GameManager.post_message("Your reward of %d coins is waiting. Make room in your inventory to receive it." % coins)
 	return false
+
+
+## Level tasks follow current XP: on level-ups and when a save (including an import) loads.
+func check_level_tasks() -> void:
+	if SkillsManager.level("attack") >= 5:
+		report_task("attack_5")
+	if SkillsManager.highest_level() >= 10:
+		report_task("level_10")
 
 
 ## Pays any pending task rewards that now fit (called whenever the inventory changes).
