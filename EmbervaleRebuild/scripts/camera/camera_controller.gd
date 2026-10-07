@@ -100,7 +100,7 @@ func orbit(relative: Vector2) -> void:
 
 
 func _process(delta: float) -> void:
-	if input_enabled:
+	if input_enabled and not GameManager.is_modal_open():
 		var k := deg_to_rad(KEY_DEGREES_PER_SECOND) * delta
 		yaw += (Input.get_action_strength("camera_left") - Input.get_action_strength("camera_right")) * k
 		pitch = clampf(pitch + (Input.get_action_strength("camera_up") - Input.get_action_strength("camera_down")) * k,

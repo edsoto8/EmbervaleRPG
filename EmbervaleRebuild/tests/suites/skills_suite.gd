@@ -433,6 +433,9 @@ func test_shop_buy_and_sell() -> void:
 	check_eq(InventoryManager.count("coins"), 120 - 60 + 20, "paid 60 coins, earned the task reward")
 	check(not w.skills.buy("steel_axe").ok, "a second steel axe is refused")
 	check(w.skills.buy("tinderbox").ok and w.skills.buy("tinderbox").ok, "spare tinderboxes are fine")
+	var before := w.player.global_position
+	await hold("move_back", 0.5)
+	check(flat_distance(before, w.player.global_position) < 0.05, "the shop blocks movement")
 	await tap("pause")
 	await frames(2)
 	check(top_modal() == null and not get_tree().paused, "Esc closes the shop")

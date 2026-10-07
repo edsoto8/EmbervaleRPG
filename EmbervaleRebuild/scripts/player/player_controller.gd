@@ -77,10 +77,12 @@ func facing_yaw() -> float:
 
 func _physics_process(delta: float) -> void:
 	var input := Vector2.ZERO
-	if input_enabled:
+	# Modals (shop, confirmations, completion) block world input.
+	var allowed := input_enabled and not GameManager.is_modal_open()
+	if allowed:
 		input = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var keyboard := input.length() > 0.01
-	var running := input_enabled and Input.is_action_pressed("run")
+	var running := allowed and Input.is_action_pressed("run")
 	var speed := RUN_SPEED if running else WALK_SPEED
 	var desired := Vector3.ZERO
 	if keyboard:
