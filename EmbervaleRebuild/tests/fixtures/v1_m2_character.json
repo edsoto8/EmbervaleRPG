@@ -1,0 +1,11 @@
+{
+	"version": 1,
+	"saved_at": "2026-01-10T12:00:00Z",
+	"character": {
+		"name": "Brindle",
+		"appearance": {"body_type": 2, "skin_tone": "c68e63", "hair_style": 4, "hair_color": "b8452c",
+			"shirt_color": "3e6b35", "pants_color": "3a3a3a"}
+	},
+	"stage": "island",
+	"player": {"position": [3.6, 1.0, 30.0], "yaw": 1.2}
+}

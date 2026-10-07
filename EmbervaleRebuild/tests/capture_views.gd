@@ -11,6 +11,7 @@ const VIEWS := [
 	["pond", Vector3(20, 1, -20), 2.6, 16.0, 40.0],
 	["gate", Vector3(0, 1, -38), 0.2, 18.0, 30.0],
 	["overview", Vector3(0, 0, 4), 0.0, 95.0, 72.0],
+	["boat", Vector3(7.6, -0.5, 52.5), 1.3, 8.0, 18.0],
 ]
 
 var out_dir := "user://captures"

@@ -6,6 +6,8 @@ The clean-slate rebuild of the Driftwood Isle demo, built from the specification
 
 - **Engine:** Godot **4.7-stable** (standard build, not .NET), `4.7.stable.official.5b4e0cb0f`.
   Compatibility (OpenGL 3) renderer.
+- **Flow:** `run/main_scene` is the main menu. Saves happen on character creation, when the intro
+  finishes or is skipped, at checkpoints, on Save & Main Menu / Save & Exit and on window close.
 - **User data:** application/user-data name `EmbervaleRebuild`, so the reference game's `Embervale`
   saves and settings are never touched. Saves: `user://savegame.json`; settings: `user://settings.json`.
 - **Everything is procedural:** terrain, props, characters, water and (from M4) audio are generated in
@@ -28,7 +30,9 @@ tool's deadline): a script that fails to compile makes the runner hang instead o
 godot --headless --editor --path . --import --quit                          # rebuild class cache, report parse errors
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn        # all suites; exit code 0 = pass
 godot --headless --path . --fixed-fps 60 res://tests/test_runner.tscn -- world   # one suite
-godot --headless --path . --fixed-fps 60 --quit-after 600                    # smoke-run ~10 s
+godot --headless --path . --fixed-fps 60 --quit-after 600                    # smoke-run the main menu ~10 s
+godot --headless --path . res://tests/check_scripts.tscn                      # every script compiles
+godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_screenshots.tscn -- <out_dir>  # flow screenshots
 godot --path . --rendering-driver opengl3 --fixed-fps 60 res://tests/capture_views.tscn -- <out_dir>  # fixed views
 godot --path . --rendering-driver opengl3 res://tests/perf_report.tscn [-- <report.txt>]           # draw calls + generation
 ```

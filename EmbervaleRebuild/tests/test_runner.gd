@@ -5,6 +5,7 @@ extends Node
 
 const SUITES := {
 	"world": "res://tests/suites/world_suite.gd",
+	"flow": "res://tests/suites/flow_suite.gd",
 }
 
 
@@ -23,7 +24,13 @@ func _ready() -> void:
 		if only != "" and key != only:
 			continue
 		print("[%s]" % key)
-		var suite: TestSuite = load(SUITES[key]).new()
+		var script: GDScript = load(SUITES[key])
+		if script == null or not script.can_instantiate():
+			print("  FAIL %s: suite script failed to load" % key)
+			failures.append("%s: suite script failed to load" % key)
+			failed += 1
+			continue
+		var suite: TestSuite = script.new()
 		suite.suite_name = key
 		add_child(suite)
 		failed += await suite.run_all(filter)

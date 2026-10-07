@@ -1,0 +1,16 @@
+{
+	"version": 1,
+	"saved_at": "2026-03-15T19:45:00Z",
+	"character": {
+		"name": "Hale",
+		"appearance": {"body_type": 1, "skin_tone": "6e4a2f", "hair_style": 3, "hair_color": "2b2018",
+			"shirt_color": "b5622a", "pants_color": "2f4f7a"}
+	},
+	"stage": "island",
+	"player": {"position": [1.0, 1.0, 20.0], "yaw": 3.0},
+	"quest": {"index": 5, "wasd_distance": 4, "marker_reached": true, "inventory_opened": true, "logs_inspected": true,
+		"tasks": ["catch_shrimp", "light_fire", "unknown_task"]},
+	"inventory": {"slots": [{"id": "coins", "qty": 35}, {"id": "fishing_rod", "qty": 1}, {"id": "tinderbox", "qty": 1},
+		{"id": "raw_shrimp", "qty": 4}, {"id": "logs", "qty": 6}]},
+	"skills": {"xp": {"attack": 120, "woodcutting": 1200.5, "fishing": 400, "firemaking": 90, "cooking": 0}, "hitpoints": 9}
+}

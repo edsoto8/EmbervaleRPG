@@ -147,3 +147,105 @@ func wait_until(cond: Callable, timeout: float) -> bool:
 
 static func flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x - b.x, a.z - b.z).length()
+
+
+# --- game flow helpers --------------------------------------------------------------------------
+
+## Deletes save and settings files in the isolated data directory.
+func wipe_saves() -> void:
+	var dir := DirAccess.open(AppPaths.root())
+	if dir == null:
+		return
+	for f in dir.get_files():
+		if f.begins_with("savegame") or f == "settings.json":
+			dir.remove(f)
+
+
+## Returns the game to a clean main-menu-less state between tests.
+func reset_game() -> void:
+	release_all()
+	get_tree().paused = false
+	for m in get_tree().get_nodes_in_group("modal_panel"):
+		m.queue_free()
+	var cur := get_tree().current_scene
+	if cur != null:
+		cur.queue_free()
+		get_tree().current_scene = null
+	GameManager.end_adventure()
+	GameManager.transitioning = false
+	GameManager.state = GameManager.State.MAIN_MENU
+	SaveManager.fail_next_write = ""
+	await frames(3)
+
+
+## Waits for a scene change to finish and returns the new current scene.
+func wait_for_scene(script_class: String, timeout: float = 8.0) -> Node:
+	var ok := await wait_until(func() -> bool:
+		var cur := get_tree().current_scene
+		return cur != null and not GameManager.transitioning and cur.get_script() != null \
+				and cur.get_script().get_global_name() == script_class, timeout)
+	if not ok:
+		return null
+	return get_tree().current_scene
+
+
+## Waits for the gameplay world (from a GameManager scene change) to be ready.
+func wait_for_world(timeout: float = 10.0) -> World:
+	var w := await wait_for_scene("World", timeout) as World
+	if w == null:
+		return null
+	if not w.is_ready:
+		await w.world_ready
+	world = w
+	return w
+
+
+## Sends an input action press and release through the input pipeline.
+func tap(action: StringName) -> void:
+	var e := InputEventAction.new()
+	e.action = action
+	e.pressed = true
+	Input.parse_input_event(e)
+	await frames(1)
+	var r := InputEventAction.new()
+	r.action = action
+	r.pressed = false
+	Input.parse_input_event(r)
+	await frames(1)
+
+
+## Sends a key press and release (physical keycode) through the input pipeline.
+func key(code: Key) -> void:
+	for pressed in [true, false]:
+		var e := InputEventKey.new()
+		e.physical_keycode = code
+		e.keycode = code
+		e.pressed = pressed
+		Input.parse_input_event(e)
+		await frames(1)
+
+
+## Clicks the centre of a Control through the input pipeline.
+func click_control(c: Control) -> void:
+	await click_screen(c.get_global_rect().get_center())
+
+
+func find_named(root: Node, node_name: String) -> Node:
+	return root.find_child(node_name, true, false)
+
+
+func top_modal() -> ModalPanel:
+	var modals := get_tree().get_nodes_in_group("modal_panel")
+	return modals[modals.size() - 1] if modals.size() > 0 else null
+
+
+func read_json(path: String) -> Variant:
+	if not FileAccess.file_exists(path):
+		return null
+	return JSON.parse_string(FileAccess.get_file_as_string(path))
+
+
+func write_json(path: String, data: Variant) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(data))
+	f.close()

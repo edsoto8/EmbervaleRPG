@@ -105,17 +105,17 @@ Spec: [SPEC_GAME.md](SPEC_GAME.md#world-and-navigation-m1).
 
 Specs: [base flow](SPEC_GAME.md#menu-character-and-intro-m2), [saving](SPEC_SAVE.md).
 
-- [ ] `GameManager` autoload + fade transitions between scenes
-- [ ] Main menu over an orbiting island view: title/logo, New Game, Continue (disabled with no save),
+- [x] `GameManager` autoload + fade transitions between scenes
+- [x] Main menu over an orbiting island view: title/logo, New Game, Continue (disabled with no save),
       Settings, Exit; confirmation before New Game replaces a save
-- [ ] Settings: resolution, fullscreen, volume, mouse sensitivity; applied immediately, persisted; UI
+- [x] Settings: resolution, fullscreen, volume, mouse sensitivity; applied immediately, persisted; UI
       scales with resolution (`canvas_items` stretch)
-- [ ] Character creation: name (validated), body type, skin, hair style/colour, shirt/pants colour,
+- [x] Character creation: name (validated), body type, skin, hair style/colour, shirt/pants colour,
       rotating and draggable preview, Randomize, Create Character (reuses `CharacterModel.appearance`)
-- [ ] Intro cutscene in the world scene: boat sails in with the player aboard, island flyover, three intro
+- [x] Intro cutscene in the world scene: boat sails in with the player aboard, island flyover, three intro
       messages, letterbox, skip (button / Space / Esc / Enter), seamless hand-off to the gameplay camera
-- [ ] `run/main_scene` → main menu
-- [ ] Version 2 `SaveManager` per SPEC_SAVE.md (character, stage, position; saved on create, after the intro, on Save & Main
+- [x] `run/main_scene` → main menu
+- [x] Version 2 `SaveManager` per SPEC_SAVE.md (character, stage, position; saved on create, after the intro, on Save & Main
       Menu / Save & Exit / window close) and the pause menu
 
 ## Milestone 3: Tutorial systems

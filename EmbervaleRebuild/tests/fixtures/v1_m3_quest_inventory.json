@@ -1,0 +1,14 @@
+{
+	"version": 1,
+	"saved_at": "2026-02-02T08:30:00Z",
+	"character": {
+		"name": "Odile",
+		"appearance": {"body_type": 0, "skin_tone": "f3d2b3", "hair_style": 2, "hair_color": "d8b45a",
+			"shirt_color": "5b3d6e", "pants_color": "c9c1a8"}
+	},
+	"stage": "island",
+	"player": {"position": [-22.0, 1.0, -6.0], "yaw": 0.0},
+	"quest": {"index": 3, "wasd_distance": 4, "marker_reached": true, "inventory_opened": false, "logs_inspected": false},
+	"inventory": {"slots": [{"id": "logs", "qty": 2}, null, {"id": "logs", "qty": 2}]},
+	"hitpoints": 7
+}

@@ -98,7 +98,15 @@ static func _coloured_mesh(mi: MeshInstance3D) -> ArrayMesh:
 	clean[Mesh.ARRAY_VERTEX] = verts
 	clean[Mesh.ARRAY_NORMAL] = arrays[Mesh.ARRAY_NORMAL]
 	clean[Mesh.ARRAY_COLOR] = colors
-	clean[Mesh.ARRAY_INDEX] = arrays[Mesh.ARRAY_INDEX]
+	var indices: Variant = arrays[Mesh.ARRAY_INDEX]
+	if indices == null or (indices as PackedInt32Array).is_empty():
+		# Non-indexed meshes get an explicit index so they merge correctly with indexed ones.
+		var seq := PackedInt32Array()
+		seq.resize(verts.size())
+		for i in verts.size():
+			seq[i] = i
+		indices = seq
+	clean[Mesh.ARRAY_INDEX] = indices
 	var am := ArrayMesh.new()
 	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, clean)
 	_coloured[key] = am
