@@ -1,0 +1,31 @@
+# Godot 4 projects (reference and rebuild live in subdirectories, so patterns are unanchored)
+
+# Editor cache, import cache and class registry; rebuilt by `godot --editor --import --quit`.
+# Also holds export_credentials.cfg, so signing secrets never reach the repo.
+.godot/
+
+# Godot 3 leftovers and editor-only temp files
+.import/
+*.translation
+*.tmp
+
+# Export output (README: `build/` is gitignored). export_presets.cfg stays committed.
+build/
+*.pck
+*.exe
+*.zip
+
+# Crash dumps and logs from headless/test runs
+*.log
+logs/
+
+# Keep *.uid and *.import files: Godot generates them and they must be committed.
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*~
