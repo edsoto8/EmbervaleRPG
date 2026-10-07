@@ -137,3 +137,19 @@ Drop could discard a stack that changed while the confirmation was open; writing
 corrupt primary destroyed it (it is now preserved); lighting and fishing now recheck the tinderbox
 and rod at completion; pending rewards that fit and logs already held are credited on load; a
 pending interaction that gets stuck now says "You can't reach that."
+
+## Graphics revamp and game-feel pass
+
+- Terrain: flagstone plaza/courtyard (hashed shades, no checkerboard), meadow patches in the grass.
+  Props: multi-lobed canopies with shaded undersides and root wedges, four-tier pines,
+  timber-framed cottages with shutters/window boxes/door steps/chimney caps, bushier bushes with
+  berries. Variation comes from position hashes, so the island RNG sequence and every prop position
+  are unchanged (world suite: determinism, landmarks and reachability still pass).
+- HUD/feel: hearts bar, centred level-up/task banner, message log fading after 8 s idle, minimap
+  fires and fishing spots, hover ring under interactables, running dust, villagers looking at the
+  player, ember emblem on the menu.
+- All suites pass (111 tests). Perf (`docs/perf_revamp.txt`): worst view 210 draw calls (target 260,
+  limit 450); warm generation 1221 ms (limit 1500) on a container that measured ~1.7x slower than
+  the M6 run even on untouched stages. Generation was trimmed (path bounding-box rejects, deep-sea
+  texels skipped in the depth bake) to keep margin.
+- Screenshots: `docs/screenshots/flow/` (whole flow) and `docs/screenshots/revamp/` (fixed views).
